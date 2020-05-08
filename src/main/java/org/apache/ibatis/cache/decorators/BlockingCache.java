@@ -24,19 +24,18 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
- * Simple blocking decorator
- *
- * Simple and inefficient version of EhCache's BlockingCache decorator.
- * It sets a lock over a cache key when the element is not found in cache.
- * This way, other threads will wait until this element is filled instead of hitting the database.
- *
- * @author Eduardo Macarron
- *
+ * 阻塞的cache 如果线程去获取缓存，没有获取到缓存，将会去查数据库，重新设置缓存值，其他线程将会被阻塞住
  */
 public class BlockingCache implements Cache {
 
+  /**
+   * 阻塞超时的时间
+   * */
   private long timeout;
   private final Cache delegate;
+  /**
+   * 缓存的key  与ReentrantLock锁
+   * */
   private final ConcurrentHashMap<Object, ReentrantLock> locks;
 
   public BlockingCache(Cache delegate) {
@@ -59,14 +58,18 @@ public class BlockingCache implements Cache {
     try {
       delegate.putObject(key, value);
     } finally {
+      // 释放锁
       releaseLock(key);
     }
   }
 
   @Override
   public Object getObject(Object key) {
+    // 获取锁
     acquireLock(key);
+    // 获取缓存值
     Object value = delegate.getObject(key);
+    // 获取缓存值成功，释放锁，让阻塞等待的其他线程就可以去获取缓存
     if (value != null) {
       releaseLock(key);
     }
@@ -85,6 +88,9 @@ public class BlockingCache implements Cache {
     delegate.clear();
   }
 
+  /**
+   * 获取ReentrantLock对象，如果不存在，则执行添加
+   * */
   private ReentrantLock getLockForKey(Object key) {
     return locks.computeIfAbsent(key, k -> new ReentrantLock());
   }
@@ -93,6 +99,7 @@ public class BlockingCache implements Cache {
     Lock lock = getLockForKey(key);
     if (timeout > 0) {
       try {
+        // 获取锁
         boolean acquired = lock.tryLock(timeout, TimeUnit.MILLISECONDS);
         if (!acquired) {
           throw new CacheException("Couldn't get a lock in " + timeout + " for the key " +  key + " at the cache " + delegate.getId());
@@ -107,7 +114,9 @@ public class BlockingCache implements Cache {
 
   private void releaseLock(Object key) {
     ReentrantLock lock = locks.get(key);
+    // 如果当前线程持有ReentrantLock 锁
     if (lock.isHeldByCurrentThread()) {
+      // 释放锁
       lock.unlock();
     }
   }

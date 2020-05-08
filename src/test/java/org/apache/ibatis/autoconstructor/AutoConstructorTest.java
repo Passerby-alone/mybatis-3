@@ -42,8 +42,8 @@ class AutoConstructorTest {
     }
 
     // populate in-memory database
-    BaseDataTest.runScript(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(),
-        "org/apache/ibatis/autoconstructor/CreateDB.sql");
+//    BaseDataTest.runScript(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(),
+//        "org/apache/ibatis/autoconstructor/CreateDB.sql");
   }
 
   @Test

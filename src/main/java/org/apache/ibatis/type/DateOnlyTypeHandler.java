@@ -22,13 +22,14 @@ import java.sql.SQLException;
 import java.util.Date;
 
 /**
- * @author Clinton Begin
+ * Date日期转换
  */
 public class DateOnlyTypeHandler extends BaseTypeHandler<Date> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Date parameter, JdbcType jdbcType)
       throws SQLException {
+    // 转换为sql Date日期
     ps.setDate(i, new java.sql.Date(parameter.getTime()));
   }
 
@@ -55,6 +56,7 @@ public class DateOnlyTypeHandler extends BaseTypeHandler<Date> {
   @Override
   public Date getNullableResult(CallableStatement cs, int columnIndex)
       throws SQLException {
+    // 获得sql Date
     java.sql.Date sqlDate = cs.getDate(columnIndex);
     if (sqlDate != null) {
       return new Date(sqlDate.getTime());

@@ -21,9 +21,7 @@ import java.util.LinkedList;
 import org.apache.ibatis.cache.Cache;
 
 /**
- * FIFO (first in, first out) cache decorator.
- *
- * @author Clinton Begin
+ * 基于先进先出的淘汰机制Cache
  */
 public class FifoCache implements Cache {
 
@@ -75,7 +73,9 @@ public class FifoCache implements Cache {
 
   private void cycleKeyList(Object key) {
     keyList.addLast(key);
+    // 如果超过最大值
     if (keyList.size() > size) {
+      // 去除队列的首个缓存
       Object oldestKey = keyList.removeFirst();
       delegate.removeObject(oldestKey);
     }

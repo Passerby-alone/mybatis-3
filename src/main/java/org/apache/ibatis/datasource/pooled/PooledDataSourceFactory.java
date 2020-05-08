@@ -18,7 +18,7 @@ package org.apache.ibatis.datasource.pooled;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory;
 
 /**
- * @author Clinton Begin
+ * 池化的数据源
  */
 public class PooledDataSourceFactory extends UnpooledDataSourceFactory {
 

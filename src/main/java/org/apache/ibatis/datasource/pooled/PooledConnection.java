@@ -24,7 +24,7 @@ import java.sql.SQLException;
 import org.apache.ibatis.reflection.ExceptionUtil;
 
 /**
- * @author Clinton Begin
+ * 池化的 Connection 对象
  */
 class PooledConnection implements InvocationHandler {
 
@@ -243,6 +243,7 @@ class PooledConnection implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
     if (CLOSE.equals(methodName)) {
+      // 释放连接 将该连接放回到连接池中，从而避免连接被关闭
       dataSource.pushConnection(this);
       return null;
     }

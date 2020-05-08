@@ -41,13 +41,17 @@ public class JndiDataSourceFactory implements DataSourceFactory {
   public void setProperties(Properties properties) {
     try {
       InitialContext initCtx;
+      /**
+       * 获得系统properties对象
+       * */
       Properties env = getEnvProperties(properties);
+      // 初始化上下文
       if (env == null) {
         initCtx = new InitialContext();
       } else {
         initCtx = new InitialContext(env);
       }
-
+      // 从上下文中获取数据源
       if (properties.containsKey(INITIAL_CONTEXT) && properties.containsKey(DATA_SOURCE)) {
         Context ctx = (Context) initCtx.lookup(properties.getProperty(INITIAL_CONTEXT));
         dataSource = (DataSource) ctx.lookup(properties.getProperty(DATA_SOURCE));

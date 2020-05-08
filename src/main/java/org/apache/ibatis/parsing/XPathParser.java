@@ -141,7 +141,9 @@ public class XPathParser {
   }
 
   public String evalString(Object root, String expression) {
+    // 基于String进行解析
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+    // 基于${url} 表达式解析
     result = PropertyParser.parse(result, variables);
     return result;
   }
@@ -216,9 +218,13 @@ public class XPathParser {
     if (node == null) {
       return null;
     }
+    // 封装成XNode节点
     return new XNode(this, node, variables);
   }
 
+  /**
+   *
+   * **/
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
       return xpath.evaluate(expression, root, returnType);
@@ -241,7 +247,9 @@ public class XPathParser {
       factory.setExpandEntityReferences(true);
 
       DocumentBuilder builder = factory.newDocumentBuilder();
+      // 设置实体解析器
       builder.setEntityResolver(entityResolver);
+      // 设置解析错误处理
       builder.setErrorHandler(new ErrorHandler() {
         @Override
         public void error(SAXParseException exception) throws SAXException {
@@ -258,6 +266,7 @@ public class XPathParser {
           // NOP
         }
       });
+      // 解析xml
       return builder.parse(inputSource);
     } catch (Exception e) {
       throw new BuilderException("Error creating document instance.  Cause: " + e, e);

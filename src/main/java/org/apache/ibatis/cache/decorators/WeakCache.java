@@ -23,13 +23,17 @@ import java.util.LinkedList;
 import org.apache.ibatis.cache.Cache;
 
 /**
- * Weak Reference cache decorator.
- * Thanks to Dr. Heinz Kabutz for his guidance here.
+ * 弱引用的cache 基于WeakReference实现
  *
- * @author Clinton Begin
  */
 public class WeakCache implements Cache {
+  /**
+   * 强引用的健的队列
+   * */
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
+  /**
+   * 被GC回收的WeakEntry集合，避免被GC
+   * */
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
   private final Cache delegate;
   private int numberOfHardLinks;
@@ -59,6 +63,7 @@ public class WeakCache implements Cache {
   @Override
   public void putObject(Object key, Object value) {
     removeGarbageCollectedItems();
+    // 添加到 delegate 中 如果 WeakEntry 对象被 GC 时，就会添加到 queueOfGarbageCollectedEntries 队列中
     delegate.putObject(key, new WeakEntry(key, value, queueOfGarbageCollectedEntries));
   }
 
@@ -66,14 +71,19 @@ public class WeakCache implements Cache {
   public Object getObject(Object key) {
     Object result = null;
     @SuppressWarnings("unchecked") // assumed delegate cache is totally managed by this cache
+      // 获得值的 WeakReference 对象
     WeakReference<Object> weakReference = (WeakReference<Object>) delegate.getObject(key);
     if (weakReference != null) {
+      // 获取弱引用的值
       result = weakReference.get();
+      // 为空，从 delegate 中移除 。为空的原因是，意味着已经被 GC 回收
       if (result == null) {
         delegate.removeObject(key);
       } else {
+        // 添加到 hardLinksToAvoidGarbageCollection 的队头
         hardLinksToAvoidGarbageCollection.addFirst(result);
         if (hardLinksToAvoidGarbageCollection.size() > numberOfHardLinks) {
+          // 移除队尾
           hardLinksToAvoidGarbageCollection.removeLast();
         }
       }
@@ -94,6 +104,9 @@ public class WeakCache implements Cache {
     delegate.clear();
   }
 
+  /**
+   * 移除已经被GC回收的WeakEntry
+   * */
   private void removeGarbageCollectedItems() {
     WeakEntry sv;
     while ((sv = (WeakEntry) queueOfGarbageCollectedEntries.poll()) != null) {
@@ -101,10 +114,14 @@ public class WeakCache implements Cache {
     }
   }
 
+  /**
+   * 弱引用
+   * */
   private static class WeakEntry extends WeakReference<Object> {
     private final Object key;
 
     private WeakEntry(Object key, Object value, ReferenceQueue<Object> garbageCollectionQueue) {
+      //  value被回收时，会被放到garbageCollectionQueue队列中
       super(value, garbageCollectionQueue);
       this.key = key;
     }

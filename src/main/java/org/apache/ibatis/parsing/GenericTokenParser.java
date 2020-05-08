@@ -20,7 +20,13 @@ package org.apache.ibatis.parsing;
  */
 public class GenericTokenParser {
 
+  /**
+   * 开始的 token 字符串
+   * */
   private final String openToken;
+  /**
+   * 结束的 token 字符串
+   * */
   private final String closeToken;
   private final TokenHandler handler;
 
@@ -41,7 +47,9 @@ public class GenericTokenParser {
     }
     char[] src = text.toCharArray();
     int offset = 0;
+    // 得到openToken closeToken之间的表达式的值
     final StringBuilder builder = new StringBuilder();
+    // 得到openToken closeToken之间的表达式
     StringBuilder expression = null;
     while (start > -1) {
       if (start > 0 && src[start - 1] == '\\') {

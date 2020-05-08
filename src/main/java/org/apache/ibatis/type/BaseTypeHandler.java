@@ -24,16 +24,7 @@ import org.apache.ibatis.executor.result.ResultMapException;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * The base {@link TypeHandler} for references a generic type.
- * <p>
- * Important: Since 3.5.0, This class never call the {@link ResultSet#wasNull()} and
- * {@link CallableStatement#wasNull()} method for handling the SQL {@code NULL} value.
- * In other words, {@code null} value handling should be performed on subclass.
- * </p>
- *
- * @author Clinton Begin
- * @author Simone Tripodi
- * @author Kzuki Shimizu
+ * 基础类型转换
  */
 public abstract class BaseTypeHandler<T> extends TypeReference<T> implements TypeHandler<T> {
 
@@ -61,6 +52,7 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
       if (jdbcType == null) {
         throw new TypeException("JDBC requires that the JdbcType must be specified for all nullable parameters.");
       }
+      // 参数为空，设置null
       try {
         ps.setNull(i, jdbcType.TYPE_CODE);
       } catch (SQLException e) {
@@ -70,6 +62,7 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
       }
     } else {
       try {
+        // 参数非空，设置对应的参数
         setNonNullParameter(ps, i, parameter, jdbcType);
       } catch (Exception e) {
         throw new TypeException("Error setting non null for parameter #" + i + " with JdbcType " + jdbcType + " . "
@@ -120,7 +113,9 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
    *           the SQL exception
    */
   public abstract T getNullableResult(ResultSet rs, String columnName) throws SQLException;
-
+  /**
+   * 需要子类自己实现
+   * */
   public abstract T getNullableResult(ResultSet rs, int columnIndex) throws SQLException;
 
   public abstract T getNullableResult(CallableStatement cs, int columnIndex) throws SQLException;

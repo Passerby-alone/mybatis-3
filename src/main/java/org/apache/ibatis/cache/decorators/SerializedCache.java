@@ -29,7 +29,7 @@ import org.apache.ibatis.cache.CacheException;
 import org.apache.ibatis.io.Resources;
 
 /**
- * @author Clinton Begin
+ * 支持序列化值的Cache
  */
 public class SerializedCache implements Cache {
 
@@ -52,6 +52,7 @@ public class SerializedCache implements Cache {
   @Override
   public void putObject(Object key, Object object) {
     if (object == null || object instanceof Serializable) {
+      // 序列化这个值
       delegate.putObject(key, serialize((Serializable) object));
     } else {
       throw new CacheException("SharedCache failed to make a copy of a non-serializable object: " + object);
@@ -61,6 +62,7 @@ public class SerializedCache implements Cache {
   @Override
   public Object getObject(Object key) {
     Object object = delegate.getObject(key);
+    // 反序列化这个缓存值
     return object == null ? null : deserialize((byte[]) object);
   }
 
@@ -86,6 +88,7 @@ public class SerializedCache implements Cache {
 
   private byte[] serialize(Serializable value) {
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+         // 使用ObjectOutputStream流进行序列化进去
         ObjectOutputStream oos = new ObjectOutputStream(bos)) {
       oos.writeObject(value);
       oos.flush();
@@ -98,6 +101,7 @@ public class SerializedCache implements Cache {
   private Serializable deserialize(byte[] value) {
     Serializable result;
     try (ByteArrayInputStream bis = new ByteArrayInputStream(value);
+         // 使用ObjectInputStream反序化
         ObjectInputStream ois = new CustomObjectInputStream(bis)) {
       result = (Serializable) ois.readObject();
     } catch (Exception e) {

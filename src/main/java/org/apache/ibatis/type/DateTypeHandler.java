@@ -23,19 +23,21 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- * @author Clinton Begin
+ * timestamp时间戳类型转换
  */
 public class DateTypeHandler extends BaseTypeHandler<Date> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Date parameter, JdbcType jdbcType)
       throws SQLException {
+    // 转换日期，set参数
     ps.setTimestamp(i, new Timestamp(parameter.getTime()));
   }
 
   @Override
   public Date getNullableResult(ResultSet rs, String columnName)
       throws SQLException {
+    // 获取日期
     Timestamp sqlTimestamp = rs.getTimestamp(columnName);
     if (sqlTimestamp != null) {
       return new Date(sqlTimestamp.getTime());

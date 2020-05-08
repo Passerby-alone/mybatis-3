@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ibatis.cache.Cache;
 
 /**
- * @author Clinton Begin
+ * 基于定时器清空缓存
  */
 public class ScheduledCache implements Cache {
 
@@ -30,6 +30,7 @@ public class ScheduledCache implements Cache {
 
   public ScheduledCache(Cache delegate) {
     this.delegate = delegate;
+    // 定时清空间隔1小时
     this.clearInterval = TimeUnit.HOURS.toMillis(1);
     this.lastClear = System.currentTimeMillis();
   }

@@ -18,7 +18,7 @@ package org.apache.ibatis.exceptions;
 import org.apache.ibatis.executor.ErrorContext;
 
 /**
- * @author Clinton Begin
+ * 异常工厂
  */
 public class ExceptionFactory {
 
@@ -26,6 +26,9 @@ public class ExceptionFactory {
     // Prevent Instantiation
   }
 
+  /**
+   * 将异常包装成PersistenceException
+   * */
   public static RuntimeException wrapException(String message, Exception e) {
     return new PersistenceException(ErrorContext.instance().message(message).cause(e).toString(), e);
   }

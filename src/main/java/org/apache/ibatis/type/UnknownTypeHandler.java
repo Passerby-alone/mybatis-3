@@ -28,13 +28,19 @@ import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * @author Clinton Begin
+ * 未知类型的typeHandler
  */
 public class UnknownTypeHandler extends BaseTypeHandler<Object> {
 
+  /**
+   * ObjectTypeHandler 单例
+   * */
   private static final ObjectTypeHandler OBJECT_TYPE_HANDLER = new ObjectTypeHandler();
   // TODO Rename to 'configuration' after removing the 'configuration' property(deprecated property) on parent class
   private final Configuration config;
+  /**
+   * 类型转换的注册表
+   * */
   private final Supplier<TypeHandlerRegistry> typeHandlerRegistrySupplier;
 
   /**
@@ -63,6 +69,7 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType)
       throws SQLException {
+    // 获取参数对应的处理器
     TypeHandler handler = resolveTypeHandler(parameter, jdbcType);
     handler.setParameter(ps, i, parameter, jdbcType);
   }
@@ -70,6 +77,7 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
   @Override
   public Object getNullableResult(ResultSet rs, String columnName)
       throws SQLException {
+    // 获取结果对应的类型处理
     TypeHandler<?> handler = resolveTypeHandler(rs, columnName);
     return handler.getResult(rs, columnName);
   }
@@ -106,6 +114,7 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
 
   private TypeHandler<?> resolveTypeHandler(ResultSet rs, String column) {
     try {
+      // 获得 columnIndex
       Map<String,Integer> columnIndexLookup;
       columnIndexLookup = new HashMap<>();
       ResultSetMetaData rsmd = rs.getMetaData();
@@ -120,6 +129,7 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
       if (columnIndex != null) {
         handler = resolveTypeHandler(rsmd, columnIndex);
       }
+      // 获得不到，使用 OBJECT_TYPE_HANDLER
       if (handler == null || handler instanceof UnknownTypeHandler) {
         handler = OBJECT_TYPE_HANDLER;
       }
@@ -131,7 +141,9 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
 
   private TypeHandler<?> resolveTypeHandler(ResultSetMetaData rsmd, Integer columnIndex) {
     TypeHandler<?> handler = null;
+    // 获得对应的jdbcType
     JdbcType jdbcType = safeGetJdbcTypeForColumn(rsmd, columnIndex);
+    // 获得 Java Type 类型
     Class<?> javaType = safeGetClassForColumn(rsmd, columnIndex);
     if (javaType != null && jdbcType != null) {
       handler = typeHandlerRegistrySupplier.get().getTypeHandler(javaType, jdbcType);

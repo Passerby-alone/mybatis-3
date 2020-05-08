@@ -25,7 +25,7 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
- * @author Clinton Begin
+ * 非池化的数据源工厂
  */
 public class UnpooledDataSourceFactory implements DataSourceFactory {
 
@@ -35,17 +35,25 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
   protected DataSource dataSource;
 
   public UnpooledDataSourceFactory() {
+    // new一个非池化的数据源
     this.dataSource = new UnpooledDataSource();
   }
 
+  /**
+   * 设置datasource属性
+   * */
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();
+    // 创建datasource对应的metaObject对象
     MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
+    // 遍历properties对象属性放到driverProperties中
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
+      // 如果是driver开头
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
         String value = properties.getProperty(propertyName);
+        // 将driver属性名称放到driverProperties中 driver.class.name:com.mysql.cj.jdbc.Driver
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
       } else if (metaDataSource.hasSetter(propertyName)) {
         String value = (String) properties.get(propertyName);
@@ -67,6 +75,7 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
 
   private Object convertValue(MetaObject metaDataSource, String propertyName, String value) {
     Object convertedValue = value;
+    // 得到属性名 setting方法参数类型
     Class<?> targetType = metaDataSource.getSetterType(propertyName);
     if (targetType == Integer.class || targetType == int.class) {
       convertedValue = Integer.valueOf(value);

@@ -20,13 +20,19 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
- * @author Clinton Begin
+ * 支持打印日志的cache实现类
  */
 public class LoggingCache implements Cache {
 
   private final Log log;
   private final Cache delegate;
+  /**
+   * 缓存请求的次数
+   * */
   protected int requests = 0;
+  /**
+   * 命中缓存的次数
+   * */
   protected int hits = 0;
 
   public LoggingCache(Cache delegate) {
@@ -82,6 +88,9 @@ public class LoggingCache implements Cache {
     return delegate.equals(obj);
   }
 
+  /**
+   * 命中缓存的比例 命中次数 / 请求的次数
+   * */
   private double getHitRatio() {
     return (double) hits / (double) requests;
   }

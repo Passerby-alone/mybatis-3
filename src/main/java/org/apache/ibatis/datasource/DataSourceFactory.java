@@ -20,12 +20,17 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 /**
- * @author Clinton Begin
+ *  数据源工厂
  */
 public interface DataSourceFactory {
 
+  /**
+   * 设置数据源属性
+   * */
   void setProperties(Properties props);
-
+  /**
+   * 获得一个数据源
+   * */
   DataSource getDataSource();
 
 }

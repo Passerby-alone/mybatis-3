@@ -32,7 +32,7 @@ class UnpooledDataSourceTest {
   void shouldNotRegisterTheSameDriverMultipleTimes() throws Exception {
     // https://code.google.com/p/mybatis/issues/detail?id=430
     UnpooledDataSource dataSource = null;
-    dataSource = new UnpooledDataSource("org.hsqldb.jdbcDriver", "jdbc:hsqldb:mem:multipledrivers", "sa", "");
+    dataSource = new UnpooledDataSource("com.mysql.cj.jdbc.Driver", "jdbc:mysql://rm-uf65ve76g4ms7200q.mysql.rds.aliyuncs.com:3306/ezycrm?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true&rewriteBatchedStatements=true&serverTimezone=GMT%2B8", "ezycrm", "Hmf_5VEMUS87t_a");
     dataSource.getConnection().close();
     int before = countRegisteredDrivers();
     dataSource = new UnpooledDataSource("org.hsqldb.jdbcDriver", "jdbc:hsqldb:mem:multipledrivers", "sa", "");

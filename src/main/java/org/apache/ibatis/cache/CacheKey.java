@@ -23,12 +23,15 @@ import java.util.StringJoiner;
 import org.apache.ibatis.reflection.ArrayUtil;
 
 /**
- * @author Clinton Begin
- */
+ * 缓存的key
+ * */
 public class CacheKey implements Cloneable, Serializable {
 
   private static final long serialVersionUID = 1146682552656046210L;
 
+  /**
+   * 单例 - 空缓存健
+   * */
   public static final CacheKey NULL_CACHE_KEY = new CacheKey() {
 
     @Override
@@ -46,6 +49,9 @@ public class CacheKey implements Cloneable, Serializable {
   private static final int DEFAULT_HASHCODE = 17;
 
   private final int multiplier;
+  /**
+   * 缓存key的hashcode
+   * */
   private int hashcode;
   private long checksum;
   private int count;
@@ -70,12 +76,14 @@ public class CacheKey implements Cloneable, Serializable {
   }
 
   public void update(Object object) {
+    // 方法参数 object 的hashCode
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
 
     count++;
+    // checksum为baseHashCode的求和
     checksum += baseHashCode;
     baseHashCode *= count;
-
+    // 重新计算hashcode
     hashcode = multiplier * hashcode + baseHashCode;
 
     updateList.add(object);
@@ -107,10 +115,11 @@ public class CacheKey implements Cloneable, Serializable {
     if (count != cacheKey.count) {
       return false;
     }
-
+    // 比较updateList 数组
     for (int i = 0; i < updateList.size(); i++) {
       Object thisObject = updateList.get(i);
       Object thatObject = cacheKey.updateList.get(i);
+      // 一个一个对象比较
       if (!ArrayUtil.equals(thisObject, thatObject)) {
         return false;
       }
@@ -134,7 +143,9 @@ public class CacheKey implements Cloneable, Serializable {
 
   @Override
   public CacheKey clone() throws CloneNotSupportedException {
+    // 克隆 CacheKey 对象
     CacheKey clonedCacheKey = (CacheKey) super.clone();
+    // 深拷贝，避免修改原始的list对象
     clonedCacheKey.updateList = new ArrayList<>(updateList);
     return clonedCacheKey;
   }

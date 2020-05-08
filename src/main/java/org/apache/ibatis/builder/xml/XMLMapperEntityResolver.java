@@ -73,8 +73,10 @@ public class XMLMapperEntityResolver implements EntityResolver {
     InputSource source = null;
     if (path != null) {
       try {
+        // 创建InputStream对象
         InputStream in = Resources.getResourceAsStream(path);
         source = new InputSource(in);
+        // 设置publicId systemId
         source.setPublicId(publicId);
         source.setSystemId(systemId);
       } catch (IOException e) {

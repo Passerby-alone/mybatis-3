@@ -17,6 +17,7 @@ package org.apache.ibatis.cache;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.alibaba.fastjson.JSON;
 import org.apache.ibatis.cache.decorators.FifoCache;
 import org.apache.ibatis.cache.impl.PerpetualCache;
 import org.junit.jupiter.api.Test;
@@ -25,15 +26,17 @@ class FifoCacheTest {
 
   @Test
   void shouldRemoveFirstItemInBeyondFiveEntries() {
+    // 基于先入先出的缓存
     FifoCache cache = new FifoCache(new PerpetualCache("default"));
     cache.setSize(5);
     for (int i = 0; i < 5; i++) {
       cache.putObject(i, i);
     }
-    assertEquals(0, cache.getObject(0));
+    System.out.println(cache.getObject(0));
+    System.out.println(JSON.toJSONString(cache));
+    // 会抛弃最先进入队列的那个数据
     cache.putObject(5, 5);
-    assertNull(cache.getObject(0));
-    assertEquals(5, cache.getSize());
+    System.out.println(JSON.toJSONString(cache));
   }
 
   @Test

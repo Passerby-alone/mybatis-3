@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.util.Properties;
 
 import org.apache.ibatis.BaseDataTest;
+import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.junit.jupiter.api.Test;
@@ -38,14 +39,22 @@ class ManagedTransactionFactoryTest extends BaseDataTest {
 
   @Test
   void shouldEnsureThatCallsToManagedTransactionAPIDoNotForwardToManagedConnections() throws Exception {
-    TransactionFactory tf = new ManagedTransactionFactory();
+
+    UnpooledDataSource dataSource = new UnpooledDataSource();
+    dataSource.setUrl("jdbc:mysql://localhost:3306/yiyong-zhanggui?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true&rewriteBatchedStatements=true&serverTimezone=GMT%2B8");
+    dataSource.setDriver("com.mysql.cj.jdbc.Driver");
+    Properties properties = new Properties();
+    properties.put("user", "root");
+    properties.put("password", "888888");
+
+    Connection connection = dataSource.doGetConnection(properties);
+
+    TransactionFactory tf = new ManagedTransactionFactoryWrapper();
     tf.setProperties(new Properties());
-    Transaction tx = tf.newTransaction(conn);
-    assertEquals(conn, tx.getConnection());
+    Transaction tx = tf.newTransaction(connection);
     tx.commit();
     tx.rollback();
     tx.close();
-    verify(conn).close();
   }
 
   @Test

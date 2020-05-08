@@ -33,25 +33,39 @@ import javax.sql.DataSource;
 import org.apache.ibatis.io.Resources;
 
 /**
- * @author Clinton Begin
- * @author Eduardo Macarron
+ * 非池化的数据源，每次请求都会打开和关闭一次session
  */
 public class UnpooledDataSource implements DataSource {
 
+  /**
+   * 类加载器
+   * */
   private ClassLoader driverClassLoader;
+  /**
+   * datasource链接属性
+   * */
   private Properties driverProperties;
+  /**
+   * 已注册Driver映射
+   * */
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
   private String driver;
   private String url;
   private String username;
   private String password;
-
+  /**
+   * 是否自动提交
+   * */
   private Boolean autoCommit;
+  /**
+   * 默认的事务隔离级别
+   * */
   private Integer defaultTransactionIsolationLevel;
   private Integer defaultNetworkTimeout;
 
   static {
+    // 初始化registeredDrivers 获取加载驱动
     Enumeration<Driver> drivers = DriverManager.getDrivers();
     while (drivers.hasMoreElements()) {
       Driver driver = drivers.nextElement();
@@ -206,6 +220,7 @@ public class UnpooledDataSource implements DataSource {
   }
 
   private Connection doGetConnection(String username, String password) throws SQLException {
+    // 创建连接属性
     Properties props = new Properties();
     if (driverProperties != null) {
       props.putAll(driverProperties);
@@ -219,9 +234,12 @@ public class UnpooledDataSource implements DataSource {
     return doGetConnection(props);
   }
 
-  private Connection doGetConnection(Properties properties) throws SQLException {
+  public Connection doGetConnection(Properties properties) throws SQLException {
+    // 初始化驱动
     initializeDriver();
+    // 打开链接
     Connection connection = DriverManager.getConnection(url, properties);
+    // 链接的一些配置
     configureConnection(connection);
     return connection;
   }
@@ -231,14 +249,16 @@ public class UnpooledDataSource implements DataSource {
       Class<?> driverType;
       try {
         if (driverClassLoader != null) {
+          // Class.forName加载驱动 也就是原生的Class.forName("com.mysql.jdbc.Driver")
           driverType = Class.forName(driver, true, driverClassLoader);
         } else {
           driverType = Resources.classForName(driver);
         }
-        // DriverManager requires the driver to be loaded via the system ClassLoader.
-        // http://www.kfu.com/~nsayer/Java/dyn-jdbc.html
+        //  创建driver实例
         Driver driverInstance = (Driver) driverType.getDeclaredConstructor().newInstance();
+        //  创建driverProxy 并注册到 DriverManager 中
         DriverManager.registerDriver(new DriverProxy(driverInstance));
+        // 放到registeredDrivers中
         registeredDrivers.put(driver, driverInstance);
       } catch (Exception e) {
         throw new SQLException("Error setting driver on UnpooledDataSource. Cause: " + e);
@@ -247,12 +267,15 @@ public class UnpooledDataSource implements DataSource {
   }
 
   private void configureConnection(Connection conn) throws SQLException {
+    // 默认的超时时间
     if (defaultNetworkTimeout != null) {
       conn.setNetworkTimeout(Executors.newSingleThreadExecutor(), defaultNetworkTimeout);
     }
+    // 设置自动提交
     if (autoCommit != null && autoCommit != conn.getAutoCommit()) {
       conn.setAutoCommit(autoCommit);
     }
+    // 设置事务的隔离级别
     if (defaultTransactionIsolationLevel != null) {
       conn.setTransactionIsolation(defaultTransactionIsolationLevel);
     }
