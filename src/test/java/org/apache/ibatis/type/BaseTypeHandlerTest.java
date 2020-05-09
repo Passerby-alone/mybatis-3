@@ -15,17 +15,32 @@
  */
 package org.apache.ibatis.type;
 
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.sql.*;
+import java.util.Properties;
 
+import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 abstract class BaseTypeHandlerTest {
+
+  public static Connection connection;
+
+  static {
+    UnpooledDataSource dataSource = new UnpooledDataSource();
+    dataSource.setUrl("jdbc:mysql://localhost:3306/yiyong-zhanggui?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true&rewriteBatchedStatements=true&serverTimezone=GMT%2B8");
+    dataSource.setDriver("com.mysql.cj.jdbc.Driver");
+    Properties properties = new Properties();
+    properties.put("user", "root");
+    properties.put("password", "888888");
+
+    try {
+      connection = dataSource.doGetConnection(properties);
+    } catch (SQLException e) {
+    }
+  }
 
   @Mock
   protected ResultSet rs;

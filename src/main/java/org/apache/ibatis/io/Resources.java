@@ -32,6 +32,9 @@ import java.util.Properties;
  */
 public class Resources {
 
+  /**
+   * 类加载器的包装类 相当于类加载器增强类
+   * */
   private static ClassLoaderWrapper classLoaderWrapper = new ClassLoaderWrapper();
 
   /**
@@ -69,7 +72,7 @@ public class Resources {
    * @throws java.io.IOException If the resource cannot be found or read
    */
   public static URL getResourceURL(String resource) throws IOException {
-    // issue #625
+    // 获得resource的url
     return getResourceURL(null, resource);
   }
 

@@ -19,13 +19,17 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
- * A class to wrap access to multiple class loaders making them work as one
- *
- * @author Clinton Begin
+ * ClassLoader包装器, 可以使用多个ClassLoader加载对应的资源
  */
 public class ClassLoaderWrapper {
 
+  /**
+   * 默认的加载器
+   * */
   ClassLoader defaultClassLoader;
+  /**
+   * 系统加载器
+   * */
   ClassLoader systemClassLoader;
 
   ClassLoaderWrapper() {
@@ -43,6 +47,7 @@ public class ClassLoaderWrapper {
    * @return the resource or null
    */
   public URL getResourceAsURL(String resource) {
+    // 获得指定资源的URL
     return getResourceAsURL(resource, getClassLoaders(null));
   }
 
@@ -111,8 +116,7 @@ public class ClassLoaderWrapper {
   InputStream getResourceAsStream(String resource, ClassLoader[] classLoader) {
     for (ClassLoader cl : classLoader) {
       if (null != cl) {
-
-        // try to find the resource as passed
+        // 获取指定资源的流
         InputStream returnValue = cl.getResourceAsStream(resource);
 
         // now, some class loaders want this leading "/", so we'll add it and try again if we didn't find the resource
@@ -138,12 +142,11 @@ public class ClassLoaderWrapper {
   URL getResourceAsURL(String resource, ClassLoader[] classLoader) {
 
     URL url;
-
+    // 遍历类加载器
     for (ClassLoader cl : classLoader) {
 
       if (null != cl) {
-
-        // look for the resource as passed in...
+        // 获得URL
         url = cl.getResource(resource);
 
         // ...but some class loaders want this leading "/", so we'll add it
@@ -168,12 +171,7 @@ public class ClassLoaderWrapper {
   }
 
   /**
-   * Attempt to load a class from a group of classloaders
-   *
-   * @param name        - the class to load
-   * @param classLoader - the group of classloaders to examine
-   * @return the class
-   * @throws ClassNotFoundException - Remember the wisdom of Judge Smails: Well, the world needs ditch diggers, too.
+   * 获得指定类名对应的类
    */
   Class<?> classForName(String name, ClassLoader[] classLoader) throws ClassNotFoundException {
 
@@ -182,7 +180,7 @@ public class ClassLoaderWrapper {
       if (null != cl) {
 
         try {
-
+          // 获得类 比如：com.mysql.cj.jdbc.Driver
           Class<?> c = Class.forName(name, true, cl);
 
           if (null != c) {
@@ -202,6 +200,7 @@ public class ClassLoaderWrapper {
   }
 
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
+    // 获得类加载器数组
     return new ClassLoader[]{
         classLoader,
         defaultClassLoader,

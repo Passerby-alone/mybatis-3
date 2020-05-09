@@ -33,7 +33,7 @@ import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.Resources;
 
 /**
- * @author Clinton Begin
+ * 类型与别名的注册表 通过别名，resultType 和 parameterType 属性，直接使用，而不用写全类名
  */
 public class TypeAliasRegistry {
 
@@ -140,10 +140,12 @@ public class TypeAliasRegistry {
 
   public void registerAlias(Class<?> type) {
     String alias = type.getSimpleName();
+    // 如果有注解 则使用注解上的值
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
     }
+    // 注册类型与别名的注册表
     registerAlias(alias, type);
   }
 
@@ -151,8 +153,9 @@ public class TypeAliasRegistry {
     if (alias == null) {
       throw new TypeException("The parameter alias cannot be null");
     }
-    // issue #748
+    // 转换成小写
     String key = alias.toLowerCase(Locale.ENGLISH);
+    // 如果key已经被注册过，注册过的class 不等于value
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
       throw new TypeException("The alias '" + alias + "' is already mapped to the value '" + typeAliases.get(key).getName() + "'.");
     }

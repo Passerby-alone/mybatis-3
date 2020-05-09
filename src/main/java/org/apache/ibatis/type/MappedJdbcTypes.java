@@ -36,19 +36,16 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+// 放到类上
 @Target(ElementType.TYPE)
 public @interface MappedJdbcTypes {
   /**
-   * Returns jdbc types to map {@link TypeHandler}.
-   *
-   * @return jdbc types
+   * 匹配的JDBC Type类型的注解
    */
   JdbcType[] value();
 
   /**
-   * Returns whether map to jdbc null type.
-   *
-   * @return {@code true} if map, {@code false} if otherwise
+   * 包含空的JDBC Type类型，没有匹配到JDBC Type类型
    */
   boolean includeNullJdbcType() default false;
 }

@@ -21,6 +21,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,16 +33,20 @@ class BigDecimalTypeHandlerTest extends BaseTypeHandlerTest {
   @Override
   @Test
   public void shouldSetParameter() throws Exception {
-    TYPE_HANDLER.setParameter(ps, 1, new BigDecimal(1), null);
-    verify(ps).setBigDecimal(1, new BigDecimal(1));
+
+    PreparedStatement statement = connection.prepareStatement("select * from mall where mall_id = ?");
+    TYPE_HANDLER.setParameter(statement, 1, new BigDecimal(1), JdbcType.DECIMAL);
+    System.out.println();
   }
 
   @Override
   @Test
   public void shouldGetResultFromResultSetByName() throws Exception {
-    when(rs.getBigDecimal("column")).thenReturn(new BigDecimal(1));
-    assertEquals(new BigDecimal(1), TYPE_HANDLER.getResult(rs, "column"));
-    verify(rs, never()).wasNull();
+
+    PreparedStatement statement = connection.prepareStatement("select * from mall");
+    ResultSet resultSet = statement.executeQuery();
+    resultSet.next();
+    System.out.println(TYPE_HANDLER.getResult(resultSet, 1));
   }
 
   @Override
