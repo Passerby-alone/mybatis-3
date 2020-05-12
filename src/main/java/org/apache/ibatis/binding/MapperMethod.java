@@ -39,14 +39,17 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 
 /**
- * @author Clinton Begin
- * @author Eduardo Macarron
- * @author Lasse Voss
- * @author Kazuki Shimizu
+ * 在Mapper接口中 每个定义的方法，对应一个MapperMethod对象
  */
 public class MapperMethod {
 
+  /**
+   * SqlCommand 对象
+   * */
   private final SqlCommand command;
+  /**
+   * 方法签名
+   * */
   private final MethodSignature method;
 
   public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
@@ -218,15 +221,22 @@ public class MapperMethod {
 
   public static class SqlCommand {
 
+    /**
+     * MappedStatement#getId() 相当于AutoConstructorMapper.getSubject2
+     * */
     private final String name;
+    /**
+     * sql 命令类型
+     * */
     private final SqlCommandType type;
 
     public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
       final String methodName = method.getName();
       final Class<?> declaringClass = method.getDeclaringClass();
-      MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass,
-          configuration);
+      // 获得MapperStatement对象
+      MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass, configuration);
       if (ms == null) {
+        // 如果有 @Flush注解，则标记为Flush
         if (method.getAnnotation(Flush.class) != null) {
           name = null;
           type = SqlCommandType.FLUSH;
@@ -253,12 +263,14 @@ public class MapperMethod {
 
     private MappedStatement resolveMappedStatement(Class<?> mapperInterface, String methodName,
         Class<?> declaringClass, Configuration configuration) {
+      // 通过mapper类型 + 方法名 获得唯一的编号
       String statementId = mapperInterface.getName() + "." + methodName;
       if (configuration.hasStatement(statementId)) {
         return configuration.getMappedStatement(statementId);
       } else if (mapperInterface.equals(declaringClass)) {
         return null;
       }
+      // 通过父接口，继续获得 MappedStatement 对象
       for (Class<?> superInterface : mapperInterface.getInterfaces()) {
         if (declaringClass.isAssignableFrom(superInterface)) {
           MappedStatement ms = resolveMappedStatement(superInterface, methodName,
@@ -274,11 +286,20 @@ public class MapperMethod {
 
   public static class MethodSignature {
 
+    /**
+     * 是否返回多个
+     * */
     private final boolean returnsMany;
+    /**
+     * 是否返回Map
+     * */
     private final boolean returnsMap;
     private final boolean returnsVoid;
     private final boolean returnsCursor;
     private final boolean returnsOptional;
+    /**
+     * 返回类型
+     * */
     private final Class<?> returnType;
     private final String mapKey;
     private final Integer resultHandlerIndex;
@@ -286,22 +307,27 @@ public class MapperMethod {
     private final ParamNameResolver paramNameResolver;
 
     public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {
+      // 初始化 returnType 属性
       Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, mapperInterface);
-      if (resolvedReturnType instanceof Class<?>) {
+      if (resolvedReturnType instanceof Class<?>) { // 普通类
         this.returnType = (Class<?>) resolvedReturnType;
-      } else if (resolvedReturnType instanceof ParameterizedType) {
+      } else if (resolvedReturnType instanceof ParameterizedType) { // 范型类
         this.returnType = (Class<?>) ((ParameterizedType) resolvedReturnType).getRawType();
-      } else {
+      } else { // 内部类
         this.returnType = method.getReturnType();
       }
       this.returnsVoid = void.class.equals(this.returnType);
       this.returnsMany = configuration.getObjectFactory().isCollection(this.returnType) || this.returnType.isArray();
       this.returnsCursor = Cursor.class.equals(this.returnType);
       this.returnsOptional = Optional.class.equals(this.returnType);
+      // 返回Mapkey
       this.mapKey = getMapKey(method);
       this.returnsMap = this.mapKey != null;
+      // 得到RowBounds所在的索引
       this.rowBoundsIndex = getUniqueParamIndex(method, RowBounds.class);
+      // 得到ResultHandler所在的索引
       this.resultHandlerIndex = getUniqueParamIndex(method, ResultHandler.class);
+      // 初始化paramNameResolver
       this.paramNameResolver = new ParamNameResolver(configuration, method);
     }
 
@@ -359,7 +385,7 @@ public class MapperMethod {
       Integer index = null;
       final Class<?>[] argTypes = method.getParameterTypes();
       for (int i = 0; i < argTypes.length; i++) {
-        if (paramType.isAssignableFrom(argTypes[i])) {
+        if (paramType.isAssignableFrom(argTypes[i])) { // 类型符合
           if (index == null) {
             index = i;
           } else {

@@ -28,18 +28,16 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
- * Provides a very simple API for accessing resources within an application server.
- *
- * @author Ben Gunter
+ * 虚拟文件系统的抽象类，用来查找指定路径下的文件们
  */
 public abstract class VFS {
   private static final Log log = LogFactory.getLog(VFS.class);
 
-  /** The built-in implementations. */
+  /** 内置VFS实现类. */
   public static final Class<?>[] IMPLEMENTATIONS = { JBoss6VFS.class, DefaultVFS.class };
 
   /**
-   * The list to which implementations are added by {@link #addImplClass(Class)}.
+   * 自定义VFS的实现
    */
   public static final List<Class<? extends VFS>> USER_IMPLEMENTATIONS = new ArrayList<>();
 
@@ -54,7 +52,7 @@ public abstract class VFS {
       impls.addAll(USER_IMPLEMENTATIONS);
       impls.addAll(Arrays.asList((Class<? extends VFS>[]) IMPLEMENTATIONS));
 
-      // Try each implementation class until a valid one is found
+      // 创建 VFS 对象 选择最后一个 可以利用 创建的VFS对象
       VFS vfs = null;
       for (int i = 0; vfs == null || !vfs.isValid(); i++) {
         Class<? extends VFS> impl = impls.get(i);
@@ -179,12 +177,7 @@ public abstract class VFS {
   }
 
   /**
-   * Get a list of {@link URL}s from the context classloader for all the resources found at the
-   * specified path.
-   *
-   * @param path The resource path.
-   * @return A list of {@link URL}s, as returned by {@link ClassLoader#getResources(String)}.
-   * @throws IOException If I/O errors occur
+   * 获得指定路径下的URL数组
    */
   protected static List<URL> getResources(String path) throws IOException {
     return Collections.list(Thread.currentThread().getContextClassLoader().getResources(path));
@@ -210,16 +203,12 @@ public abstract class VFS {
   protected abstract List<String> list(URL url, String forPath) throws IOException;
 
   /**
-   * Recursively list the full resource path of all the resources that are children of all the
-   * resources found at the specified path.
-   *
-   * @param path The path of the resource(s) to list.
-   * @return A list containing the names of the child resources.
-   * @throws IOException If I/O errors occur
+   * 获得指定路径下的所有资源
    */
   public List<String> list(String path) throws IOException {
     List<String> names = new ArrayList<>();
     for (URL url : getResources(path)) {
+      // jar:file:/Users/pengjinguo/MavenRepository/com/alibaba/fastjson/1.2.67/fastjson-1.2.67.jar!/com/alibaba/fastjson/annotation
       names.addAll(list(url, path));
     }
     return names;

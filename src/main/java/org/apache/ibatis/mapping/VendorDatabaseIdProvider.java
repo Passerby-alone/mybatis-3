@@ -75,7 +75,9 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
 
   private String getDatabaseProductName(DataSource dataSource) throws SQLException {
     try (Connection con = dataSource.getConnection()) {
+      // 获得数据库连接
       DatabaseMetaData metaData = con.getMetaData();
+      // 获得数据库产品名
       return metaData.getDatabaseProductName();
     }
 

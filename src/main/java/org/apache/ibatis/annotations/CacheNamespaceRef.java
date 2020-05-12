@@ -41,21 +41,16 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.TYPE) // 对应 XML 标签为 <cache-ref />
 public @interface CacheNamespaceRef {
 
   /**
-   * Returns the namespace type to reference a cache (the namespace name become a FQCN of specified type).
-   *
-   * @return the namespace type to reference a cache
+   * 缓存的类 具体指mapper类
    */
   Class<?> value() default void.class;
 
   /**
-   * Returns the namespace name to reference a cache.
-   *
-   * @return the namespace name
-   * @since 3.4.2
+   * 指向的命名空间
    */
   String name() default "";
 }

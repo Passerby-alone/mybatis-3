@@ -17,7 +17,10 @@ package org.apache.ibatis.io;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.List;
 
+import com.alibaba.fastjson.JSON;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +34,24 @@ class VFSTest {
   @Test
   void getInstanceShouldNotBeNull() {
     VFS vsf = VFS.getInstance();
-    Assertions.assertNotNull(vsf);
+    // vsf = DefaultVFS.class
+  }
+
+  @Test
+  void testGetResources() throws IOException {
+    String path = "org/apache/ibatis/io";
+    List<URL> urls = VFS.getResources(path);
+    // ["file:/Users/pengjinguo/git/mybatis-3/target/test-classes/org/apache/ibatis/io/","file:/Users/pengjinguo/git/mybatis-3/target/classes/org/apache/ibatis/io/"]
+    System.out.println(JSON.toJSONString(urls));
+  }
+
+  @Test
+  void testDefaultVFS() throws IOException {
+
+    DefaultVFS defaultVFS = new DefaultVFS();
+    System.out.println(defaultVFS.getPackagePath("org.apache.ibatis.io"));
+    List<String> strs = defaultVFS.list(defaultVFS.getPackagePath("com.alibaba.fastjson.annotation"));
+    System.out.println(JSON.toJSONString(strs));
   }
 
   @Test
@@ -65,7 +85,7 @@ class VFSTest {
   @Test
   void getExistMethod() {
     Method method = VFS.getMethod(VFS.class, "list", String.class);
-    Assertions.assertNotNull(method);
+    System.out.println(method.getName());
   }
 
   @Test

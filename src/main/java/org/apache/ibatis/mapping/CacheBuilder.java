@@ -35,7 +35,7 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
- * @author Clinton Begin
+ * cache 构造器
  */
 public class CacheBuilder {
   private final String id;

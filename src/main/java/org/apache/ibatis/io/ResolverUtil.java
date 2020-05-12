@@ -25,38 +25,7 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
- * <p>ResolverUtil is used to locate classes that are available in the/a class path and meet
- * arbitrary conditions. The two most common conditions are that a class implements/extends
- * another class, or that is it annotated with a specific annotation. However, through the use
- * of the {@link Test} class it is possible to search using arbitrary conditions.</p>
- *
- * <p>A ClassLoader is used to locate all locations (directories and jar files) in the class
- * path that contain classes within certain packages, and then to load those classes and
- * check them. By default the ClassLoader returned by
- * {@code Thread.currentThread().getContextClassLoader()} is used, but this can be overridden
- * by calling {@link #setClassLoader(ClassLoader)} prior to invoking any of the {@code find()}
- * methods.</p>
- *
- * <p>General searches are initiated by calling the
- * {@link #find(org.apache.ibatis.io.ResolverUtil.Test, String)} ()} method and supplying
- * a package name and a Test instance. This will cause the named package <b>and all sub-packages</b>
- * to be scanned for classes that meet the test. There are also utility methods for the common
- * use cases of scanning multiple packages for extensions of particular classes, or classes
- * annotated with a specific annotation.</p>
- *
- * <p>The standard usage pattern for the ResolverUtil class is as follows:</p>
- *
- * <pre>
- * ResolverUtil&lt;ActionBean&gt; resolver = new ResolverUtil&lt;ActionBean&gt;();
- * resolver.findImplementation(ActionBean.class, pkg1, pkg2);
- * resolver.find(new CustomTest(), pkg1);
- * resolver.find(new CustomTest(), pkg2);
- * Collection&lt;ActionBean&gt; beans = resolver.getClasses();
- * </pre>
- *
- * @author Tim Fennell
- * @param <T>
- *          the generic type
+ * 解析器工具类，用于获得指定目录符合条件的类们
  */
 public class ResolverUtil<T> {
 
@@ -83,12 +52,13 @@ public class ResolverUtil<T> {
   }
 
   /**
-   * A Test that checks to see if each class is assignable to the provided class. Note
-   * that this test will match the parent type itself if it is presented for matching.
+   * 是否是指定类
    */
   public static class IsA implements Test {
 
-    /** The parent. */
+    /**
+     * 指定类
+     * */
     private Class<?> parent;
 
     /**
@@ -114,8 +84,7 @@ public class ResolverUtil<T> {
   }
 
   /**
-   * A Test that checks to see if each class is annotated with a specific annotation. If it
-   * is, then the test returns true, otherwise false.
+   * 是否有指定的注解
    */
   public static class AnnotatedWith implements Test {
 
@@ -144,7 +113,9 @@ public class ResolverUtil<T> {
     }
   }
 
-  /** The set of matches being accumulated. */
+  /**
+   * 符合条件的类的集合
+   * */
   private Set<Class<? extends T>> matches = new HashSet<>();
 
   /**
@@ -232,24 +203,19 @@ public class ResolverUtil<T> {
   }
 
   /**
-   * Scans for classes starting at the package provided and descending into subpackages.
-   * Each class is offered up to the Test as it is discovered, and if the Test returns
-   * true the class is retained.  Accumulated classes can be fetched by calling
-   * {@link #getClasses()}.
-   *
-   * @param test
-   *          an instance of {@link Test} that will be used to filter classes
-   * @param packageName
-   *          the name of the package from which to start scanning for classes, e.g. {@code net.sourceforge.stripes}
-   * @return the resolver util
+   * 获得指定包下，符合条件的类
    */
   public ResolverUtil<T> find(Test test, String packageName) {
+    // 获得包路径 com.ezhiyang.crm转换com/ezhiyang/crm
     String path = getPackagePath(packageName);
 
     try {
+      // 获得路径下的所有文件名
       List<String> children = VFS.getInstance().list(path);
+      // 遍历每个文件
       for (String child : children) {
         if (child.endsWith(".class")) {
+          // 然后匹配, 则放到匹配的结果集中
           addIfMatching(test, child);
         }
       }
@@ -282,12 +248,13 @@ public class ResolverUtil<T> {
   @SuppressWarnings("unchecked")
   protected void addIfMatching(Test test, String fqn) {
     try {
+      // 获得全类名 com.ezhiyang.crm.Test
       String externalName = fqn.substring(0, fqn.indexOf('.')).replace('/', '.');
       ClassLoader loader = getClassLoader();
       if (log.isDebugEnabled()) {
         log.debug("Checking to see if class " + externalName + " matches criteria [" + test + "]");
       }
-
+      // 加载这个类
       Class<?> type = loader.loadClass(externalName);
       if (test.matches(type)) {
         matches.add((Class<T>) type);

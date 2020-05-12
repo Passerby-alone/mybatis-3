@@ -38,23 +38,17 @@ import org.apache.ibatis.type.UnknownTypeHandler;
 @Repeatable(Results.class)
 public @interface Result {
   /**
-   * Returns whether id column or not.
-   *
-   * @return {@code true} if id column; {@code false} if otherwise
+   * 是否有id字段
    */
   boolean id() default false;
 
   /**
-   * Return the column name(or column label) to map to this argument.
-   *
-   * @return the column name(or column label)
+   * 列名
    */
   String column() default "";
 
   /**
-   * Returns the property name for applying this mapping.
-   *
-   * @return the property name
+   * 属性名
    */
   String property() default "";
 
@@ -73,23 +67,17 @@ public @interface Result {
   JdbcType jdbcType() default JdbcType.UNDEFINED;
 
   /**
-   * Returns the {@link TypeHandler} type for retrieving a column value from result set.
-   *
-   * @return the {@link TypeHandler} type
+   * 类型转换
    */
   Class<? extends TypeHandler> typeHandler() default UnknownTypeHandler.class;
 
   /**
-   * Returns the mapping definition for single relationship.
-   *
-   * @return the mapping definition for single relationship
+   * 一对一
    */
   One one() default @One;
 
   /**
-   * Returns the mapping definition for collection relationship.
-   *
-   * @return the mapping definition for collection relationship
+   * 一对多
    */
   Many many() default @Many;
 }

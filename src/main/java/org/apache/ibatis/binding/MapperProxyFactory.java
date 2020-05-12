@@ -22,13 +22,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ibatis.binding.MapperProxy.MapperMethodInvoker;
 import org.apache.ibatis.session.SqlSession;
+import sun.jvm.hotspot.compiler.OopMap;
 
 /**
- * @author Lasse Voss
+ * mapperProxy代理类工厂
  */
 public class MapperProxyFactory<T> {
 
   private final Class<T> mapperInterface;
+  /**
+   * 方法 与 MapperMethodInvoker执行的映射
+   * */
   private final Map<Method, MapperMethodInvoker> methodCache = new ConcurrentHashMap<>();
 
   public MapperProxyFactory(Class<T> mapperInterface) {
@@ -45,6 +49,7 @@ public class MapperProxyFactory<T> {
 
   @SuppressWarnings("unchecked")
   protected T newInstance(MapperProxy<T> mapperProxy) {
+    // 基于JDK 动态代理实现 mapperProxy 代理类
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 
@@ -52,5 +57,4 @@ public class MapperProxyFactory<T> {
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);
   }
-
 }

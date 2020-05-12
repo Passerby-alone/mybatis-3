@@ -47,48 +47,36 @@ import org.apache.ibatis.cache.impl.PerpetualCache;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.TYPE) // 放在mapper类上
 public @interface CacheNamespace {
 
   /**
-   * Returns the cache implementation type to use.
-   *
-   * @return the cache implementation type
+   * 负责存储缓存的cache实现类 先入先出缓存 最少使用缓存 最近未使用缓存
    */
   Class<? extends Cache> implementation() default PerpetualCache.class;
 
   /**
-   * Returns the cache evicting implementation type to use.
-   *
-   * @return the cache evicting implementation type
+   * 负责存储过期的cache实现类
    */
   Class<? extends Cache> eviction() default LruCache.class;
 
   /**
-   * Returns the flush interval.
-   *
-   * @return the flush interval
+   * 清空的时间间隔 0:表示不会清空
    */
   long flushInterval() default 0;
 
   /**
-   * Return the cache size.
-   *
-   * @return the cache size
+   * 缓存大小
    */
   int size() default 1024;
 
   /**
-   * Returns whether use read/write cache.
-   *
-   * @return {@code true} if use read/write cache; {@code false} if otherwise
+   * 是否序列化
    */
   boolean readWrite() default true;
 
   /**
-   * Returns whether block the cache at request time or not.
-   *
-   * @return {@code true} if block the cache; {@code false} if otherwise
+   * 是否阻塞
    */
   boolean blocking() default false;
 

@@ -24,8 +24,11 @@ import static org.mockito.Mockito.when;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Properties;
 
+import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.slf4j.Slf4jImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,9 +56,15 @@ class ConnectionLoggerTest {
 
   @Test
   void shouldPrintPrepareStatement() throws SQLException {
-    when(log.isDebugEnabled()).thenReturn(true);
-    conn.prepareStatement("select 1");
-    verify(log).debug(contains("Preparing: select 1"));
+
+    UnpooledDataSource dataSource = new UnpooledDataSource();
+    dataSource.setUrl("jdbc:mysql://localhost:3306/yiyong-zhanggui?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true&rewriteBatchedStatements=true&serverTimezone=GMT%2B8");
+    dataSource.setDriver("com.mysql.cj.jdbc.Driver");
+    Properties properties = new Properties();
+    properties.put("user", "root");
+    properties.put("password", "888888");
+
+    Connection connection = ConnectionLogger.newInstance(dataSource.getConnection(), new Slf4jImpl("Preparing: select 1"), 1);
   }
 
   @Test

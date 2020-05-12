@@ -51,4 +51,15 @@ class XmlMapperBuilderTest {
     }
   }
 
+  @Test
+  void testIncludeLabel() throws Exception {
+    Configuration configuration = new Configuration();
+    String resource = "org/apache/ibatis/builder/xsd/CachedAuthorMapper.xml";
+    try (InputStream inputStream = Resources.getResourceAsStream(resource)) {
+      XMLMapperBuilder builder = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+      builder.parse();
+    } finally {
+    }
+  }
+
 }

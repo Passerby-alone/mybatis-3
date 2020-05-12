@@ -41,9 +41,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Select {
   /**
-   * Returns an SQL for retrieving record(s).
-   *
-   * @return an SQL for retrieving record(s)
+   * 查询语句
    */
   String[] value();
 }

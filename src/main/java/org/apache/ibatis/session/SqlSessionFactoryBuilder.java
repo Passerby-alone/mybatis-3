@@ -44,9 +44,15 @@ public class SqlSessionFactoryBuilder {
     return build(reader, null, properties);
   }
 
+  /**
+   * 加载mybatis-config文件
+   * */
   public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
     try {
+      // 解析mybatis-config xml对象
       XMLConfigBuilder parser = new XMLConfigBuilder(reader, environment, properties);
+      // 执行XML解析
+      // build 返回SqlSessionFactory对象
       return build(parser.parse());
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error building SqlSession.", e);

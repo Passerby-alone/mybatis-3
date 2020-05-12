@@ -19,5 +19,7 @@ package org.apache.ibatis.mapping;
  * @author Clinton Begin
  */
 public enum ResultFlag {
-  ID, CONSTRUCTOR
+  ID,
+  /** 构造器 */
+  CONSTRUCTOR
 }

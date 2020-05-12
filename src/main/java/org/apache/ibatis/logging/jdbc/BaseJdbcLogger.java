@@ -33,10 +33,7 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.reflection.ArrayUtil;
 
 /**
- * Base class for proxies to do logging.
- *
- * @author Clinton Begin
- * @author Eduardo Macarron
+ * BaseJdbcLogger的实现类基于动态代码实现
  */
 public abstract class BaseJdbcLogger {
 

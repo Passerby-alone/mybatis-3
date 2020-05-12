@@ -47,16 +47,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Results {
   /**
-   * Returns the id of this result map.
-   *
-   * @return the id of this result map
+   * result 的 id
    */
   String id() default "";
 
   /**
-   * Returns mapping definitions for property.
-   *
-   * @return mapping definitions
+   * result 的 值
    */
   Result[] value() default {};
 }

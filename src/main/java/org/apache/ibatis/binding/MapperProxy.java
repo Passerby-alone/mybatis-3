@@ -30,8 +30,7 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
- * @author Clinton Begin
- * @author Eduardo Macarron
+ * mapper代理类对象 实现InvocationHandler接口，JDK 动态代理
  */
 public class MapperProxy<T> implements InvocationHandler, Serializable {
 
@@ -40,8 +39,17 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
       | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PUBLIC;
   private static final Constructor<Lookup> lookupConstructor;
   private static final Method privateLookupInMethod;
+  /**
+   * sqlSession 对象
+   * */
   private final SqlSession sqlSession;
+  /**
+   * mapper接口
+   * */
   private final Class<T> mapperInterface;
+  /**
+   * 方法与 MapperMethodInvoker方法执行的映射
+   * */
   private final Map<Method, MapperMethodInvoker> methodCache;
 
   public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethodInvoker> methodCache) {
@@ -79,6 +87,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      // 如果是 Object 定义的方法，直接调用
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, args);
       } else {
@@ -91,6 +100,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 
   private MapperMethodInvoker cachedInvoker(Method method) throws Throwable {
     try {
+      // 从缓存中获取，如果不存在，则进行创建，并进行缓存
       return methodCache.computeIfAbsent(method, m -> {
         if (m.isDefault()) {
           try {

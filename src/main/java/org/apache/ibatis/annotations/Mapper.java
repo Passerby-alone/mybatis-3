@@ -41,6 +41,9 @@ import java.lang.annotation.Target;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER })
+/**
+ * 标记这是个Mapper的注解
+ * */
 public @interface Mapper {
   // Interface Mapper
 }

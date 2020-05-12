@@ -50,11 +50,7 @@ import java.lang.annotation.Target;
 public @interface SelectProvider {
 
   /**
-   * Specify a type that implements an SQL provider method.
-   *
-   * @return a type that implements an SQL provider method
-   * @since 3.5.2
-   * @see #type()
+   * 查询提供类
    */
   Class<?> value() default void.class;
 

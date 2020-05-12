@@ -33,6 +33,7 @@ class AnnotationMapperBuilderTest {
   @Test
   void withOptions() {
     Configuration configuration = new Configuration();
+    // MapperAnnotationBuilder 注解解析
     MapperAnnotationBuilder builder = new MapperAnnotationBuilder(configuration, Mapper.class);
     builder.parse();
 

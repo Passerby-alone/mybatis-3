@@ -29,7 +29,8 @@ import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * @author Clinton Begin
+ * 每个 <select />、<insert />、<update />、<delete /> 对应一个 MappedStatement 对象
+ * 另外<selectKey /> 也会对应一个MappedStatement
  */
 public final class MappedStatement {
 
@@ -301,7 +302,11 @@ public final class MappedStatement {
     return resultSets;
   }
 
+  /**
+   * 获得绑定的sql
+   * */
   public BoundSql getBoundSql(Object parameterObject) {
+    // 获得 BoundSql 对象
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings == null || parameterMappings.isEmpty()) {

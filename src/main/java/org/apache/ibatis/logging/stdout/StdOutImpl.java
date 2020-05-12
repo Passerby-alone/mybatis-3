@@ -38,6 +38,7 @@ public class StdOutImpl implements Log {
 
   @Override
   public void error(String s, Throwable e) {
+    // 基于System.out 和 System.err 来实现
     System.err.println(s);
     e.printStackTrace(System.err);
   }

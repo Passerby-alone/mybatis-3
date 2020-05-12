@@ -48,12 +48,13 @@ import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.type.JdbcType;
 
 /**
- * @author Clinton Begin
- * @author Kazuki Shimizu
+ * 继承BaseBuilder抽象类，主要负责解析mybatis-config.xml文件
  */
 public class XMLConfigBuilder extends BaseBuilder {
 
+  /** 是否已解析 */
   private boolean parsed;
+  /** XPath解析器 */
   private final XPathParser parser;
   private String environment;
   private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
@@ -92,31 +93,41 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public Configuration parse() {
+    // 如果是已解析 则抛出异常
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
+    // 标记已解析
     parsed = true;
+    // 解析 XML Configuration 节点
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
   private void parseConfiguration(XNode root) {
     try {
-      // issue #117 read properties first
+      // 解析properties标签
       propertiesElement(root.evalNode("properties"));
+      // 解析settings标签
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       loadCustomVfs(settings);
       loadCustomLogImpl(settings);
+      // 解析typeAliases标签
       typeAliasesElement(root.evalNode("typeAliases"));
       pluginElement(root.evalNode("plugins"));
+      // 解析objectFactory标签
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      // 解析reflectorFactory标签
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
       settingsElement(settings);
-      // read it after objectFactory and objectWrapperFactory issue #631
+      // 解析environments标签
       environmentsElement(root.evalNode("environments"));
+      // 解析databaseIdProvider标签
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      // 解析typeHandlers标签
       typeHandlerElement(root.evalNode("typeHandlers"));
+      // 解析mappers标签
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -127,8 +138,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     if (context == null) {
       return new Properties();
     }
+    // 将子标签解析成Properties对象
     Properties props = context.getChildrenAsProperties();
-    // Check that all settings are known to the configuration class
+    // 效验每个属性 在 Configuration 中，有相应的 setting 方法
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
@@ -139,6 +151,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private void loadCustomVfs(Properties props) throws ClassNotFoundException {
+    // 获得 vfsImpl 属性
     String value = props.getProperty("vfsImpl");
     if (value != null) {
       String[] clazzes = value.split(",");
@@ -159,15 +172,20 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
+      // 遍历子节点
       for (XNode child : parent.getChildren()) {
+        // 如果子节点是package的话 则扫面包
         if ("package".equals(child.getName())) {
           String typeAliasPackage = child.getStringAttribute("name");
+          // 注册包下面的每个类
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
         } else {
+          // 如果是typeAlias标签的话 直接注册alias 和 type
           String alias = child.getStringAttribute("alias");
           String type = child.getStringAttribute("type");
           try {
             Class<?> clazz = Resources.classForName(type);
+            // 注册到typeAliasRegistry中
             if (alias == null) {
               typeAliasRegistry.registerAlias(clazz);
             } else {
@@ -181,13 +199,19 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析plugin标签
+   * */
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
+      // 遍历 <plugins /> 标签
       for (XNode child : parent.getChildren()) {
         String interceptor = child.getStringAttribute("interceptor");
         Properties properties = child.getChildrenAsProperties();
+        // 创建Interceptor 对象，并设置属性
         Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).getDeclaredConstructor().newInstance();
         interceptorInstance.setProperties(properties);
+        // 将interceptor加入到interceptorChain拦截器链中
         configuration.addInterceptor(interceptorInstance);
       }
     }
@@ -195,8 +219,11 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void objectFactoryElement(XNode context) throws Exception {
     if (context != null) {
+      // 获得 ObjectFactory 的实现类
       String type = context.getStringAttribute("type");
+      // 获得字节点Properties属性
       Properties properties = context.getChildrenAsProperties();
+      // 创建 ObjectFactory 对象 并设置Properties属性
       ObjectFactory factory = (ObjectFactory) resolveClass(type).getDeclaredConstructor().newInstance();
       factory.setProperties(properties);
       configuration.setObjectFactory(factory);
@@ -213,25 +240,36 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void reflectorFactoryElement(XNode context) throws Exception {
     if (context != null) {
+      // 获得ReflectorFactory对象的实现类
       String type = context.getStringAttribute("type");
       ReflectorFactory factory = (ReflectorFactory) resolveClass(type).getDeclaredConstructor().newInstance();
       configuration.setReflectorFactory(factory);
     }
   }
 
+  /**
+   * 解析properties节点
+   * */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
+      // 读取子标签为Properties对象
       Properties defaults = context.getChildrenAsProperties();
+
+      // 读取resource和url属性
       String resource = context.getStringAttribute("resource");
       String url = context.getStringAttribute("url");
+      // 两选一 不然抛出异常
       if (resource != null && url != null) {
         throw new BuilderException("The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
+      // 读取本地的resource到Properties defaults中，这里用到了IO模块，需要读取文件
       if (resource != null) {
         defaults.putAll(Resources.getResourceAsProperties(resource));
       } else if (url != null) {
+        // 读取远程的url到Properties defaults中
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
+      // configuration中的Properties不能null 则进行覆盖defaults中
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
@@ -241,6 +279,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析<setting />标签
+   * */
   private void settingsElement(Properties props) {
     configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
@@ -275,10 +316,13 @@ public class XMLConfigBuilder extends BaseBuilder {
       if (environment == null) {
         environment = context.getStringAttribute("default");
       }
+      // 遍历子节点
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
         if (isSpecifiedEnvironment(id)) {
+          // 解析transactionManager标签 返回TransactionFactory对象
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+          // 解析dataSource标签 返回DataSource对象
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
           Environment.Builder environmentBuilder = new Environment.Builder(id)
@@ -305,6 +349,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     Environment environment = configuration.getEnvironment();
     if (environment != null && databaseIdProvider != null) {
       String databaseId = databaseIdProvider.getDatabaseId(environment.getDataSource());
+      // 设置configuration batabaseId
       configuration.setDatabaseId(databaseId);
     }
   }
@@ -322,6 +367,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private DataSourceFactory dataSourceElement(XNode context) throws Exception {
     if (context != null) {
+      // 获得 DataSourceFactory 类
       String type = context.getStringAttribute("type");
       Properties props = context.getChildrenAsProperties();
       DataSourceFactory factory = (DataSourceFactory) resolveClass(type).getDeclaredConstructor().newInstance();
@@ -333,7 +379,9 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void typeHandlerElement(XNode parent) {
     if (parent != null) {
+      // 遍历子节点
       for (XNode child : parent.getChildren()) {
+        // 如果package标签，则扫描该包下的类
         if ("package".equals(child.getName())) {
           String typeHandlerPackage = child.getStringAttribute("name");
           typeHandlerRegistry.register(typeHandlerPackage);
@@ -344,6 +392,7 @@ public class XMLConfigBuilder extends BaseBuilder {
           Class<?> javaTypeClass = resolveClass(javaTypeName);
           JdbcType jdbcType = resolveJdbcType(jdbcTypeName);
           Class<?> typeHandlerClass = resolveClass(handlerTypeName);
+          // 注册 typeHandler
           if (javaTypeClass != null) {
             if (jdbcType == null) {
               typeHandlerRegistry.register(javaTypeClass, typeHandlerClass);
@@ -394,7 +443,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       throw new BuilderException("No environment specified.");
     } else if (id == null) {
       throw new BuilderException("Environment requires an id attribute.");
-    } else if (environment.equals(id)) {
+    } else if (environment.equals(id)) { // environments 中的default标签 和 environment中的id标签是否相等
       return true;
     }
     return false;

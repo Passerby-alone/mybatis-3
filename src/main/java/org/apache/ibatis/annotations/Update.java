@@ -41,9 +41,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Update {
   /**
-   * Returns an SQL for updating record(s).
-   *
-   * @return an SQL for updating record(s)
+   * 修改语句
    */
   String[] value();
 }

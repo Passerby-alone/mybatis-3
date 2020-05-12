@@ -41,9 +41,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface Param {
   /**
-   * Returns the parameter name.
-   *
-   * @return the parameter name
+   * 方法参数名的注解
    */
   String value();
 }

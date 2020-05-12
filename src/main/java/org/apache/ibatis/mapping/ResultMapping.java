@@ -26,7 +26,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
- * @author Clinton Begin
+ * property 跟 column 的对应关系
  */
 public class ResultMapping {
 

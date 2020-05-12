@@ -35,9 +35,7 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
- * A default implementation of {@link VFS} that works for most application servers.
- *
- * @author Ben Gunter
+ * 继承自VFS 默认的VFS实现类
  */
 public class DefaultVFS extends VFS {
   private static final Log log = LogFactory.getLog(DefaultVFS.class);
@@ -50,24 +48,28 @@ public class DefaultVFS extends VFS {
     return true;
   }
 
+  /**
+   * 递归的列出所有的资源们
+   * */
   @Override
   public List<String> list(URL url, String path) throws IOException {
     InputStream is = null;
     try {
       List<String> resources = new ArrayList<>();
 
-      // First, try to find the URL of a JAR file containing the requested resource. If a JAR
-      // file is found, then we'll list child resources by reading the JAR.
+      // 如果url指向Jar包里面, 则返回该Jar Resource, 否则返回null
       URL jarUrl = findJarForResource(url);
       if (jarUrl != null) {
         is = jarUrl.openStream();
         if (log.isDebugEnabled()) {
           log.debug("Listing " + url);
         }
+        // 遍历 Jar Resources
         resources = listResources(new JarInputStream(is), path);
       } else {
         List<String> children = new ArrayList<>();
         try {
+          // 判断是否是jar里面的url
           if (isJar(url)) {
             // Some versions of JBoss VFS might give a JAR stream even if the resource
             // referenced by the URL isn't actually a JAR
@@ -84,14 +86,7 @@ public class DefaultVFS extends VFS {
               }
             }
           } else {
-            /*
-             * Some servlet containers allow reading from directory resources like a
-             * text file, listing the child resources one per line. However, there is no
-             * way to differentiate between directory and file resources just by reading
-             * them. To work around that, as each line is read, try to look it up via
-             * the class loader as a child of the current resource. If any line fails
-             * then we assume the current resource is not a directory.
-             */
+            // 获得路径下的所有资源
             is = url.openStream();
             List<String> lines = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
@@ -136,16 +131,18 @@ public class DefaultVFS extends VFS {
           }
         }
 
-        // The URL prefix to use when recursively listing child resources
+        // 计算prefix
         String prefix = url.toExternalForm();
         if (!prefix.endsWith("/")) {
+          // file:/Users/pengjinguo/git/mybatis-3/target/test-classes/org/apache/ibatis/io/
           prefix = prefix + "/";
         }
-
-        // Iterate over immediate children, adding files and recursing into directories
+        // 遍历子路径
         for (String child : children) {
+          // 添加到resources中
           String resourcePath = path + "/" + child;
           resources.add(resourcePath);
+          // 递归遍历子路径，将resource添加到resources中
           URL childUrl = new URL(prefix + child);
           resources.addAll(list(childUrl, resourcePath));
         }
@@ -173,7 +170,7 @@ public class DefaultVFS extends VFS {
    * @throws IOException If I/O errors occur
    */
   protected List<String> listResources(JarInputStream jar, String path) throws IOException {
-    // Include the leading and trailing slash when matching names
+    // 保证头尾都是/
     if (!path.startsWith("/")) {
       path = "/" + path;
     }
@@ -221,21 +218,25 @@ public class DefaultVFS extends VFS {
     }
 
     // If the file part of the URL is itself a URL, then that URL probably points to the JAR
+    // 如果文件部分本身就是url, 那么该url可能会指向jar包里面
     boolean continueLoop = true;
     while (continueLoop) {
       try {
+        // url[file:/Users/pengjinguo/git/mybatis-3/target/test-classes/org/apache/ibatis/io]
         url = new URL(url.getFile());
         if (log.isDebugEnabled()) {
           log.debug("Inner URL: " + url);
         }
       } catch (MalformedURLException e) {
-        // This will happen at some point and serves as a break in the loop
+        // MalformedURLException: 不合法no legal protocol的转成url
+        // no protocol: /Users/pengjinguo/git/mybatis-3/target/test-classes/org/apache/ibatis/io
+        log.error(e.getMessage(), e);
         continueLoop = false;
       }
     }
 
-    // Look for the .jar extension and chop off everything after that
     StringBuilder jarUrl = new StringBuilder(url.toExternalForm());
+    // 是否以jar结尾 jarUrl = file:/Users/pengjinguo/git/mybatis-3/target/test-classes/org/apache/ibatis/io
     int index = jarUrl.lastIndexOf(".jar");
     if (index >= 0) {
       jarUrl.setLength(index + 4);
@@ -259,6 +260,7 @@ public class DefaultVFS extends VFS {
         if (log.isDebugEnabled()) {
           log.debug("Not a JAR: " + jarUrl);
         }
+        // 获得文件
         jarUrl.replace(0, jarUrl.length(), testUrl.getFile());
         File file = new File(jarUrl.toString());
 
@@ -328,6 +330,7 @@ public class DefaultVFS extends VFS {
     InputStream is = null;
     try {
       is = url.openStream();
+      // 读取文件头
       is.read(buffer, 0, JAR_MAGIC.length);
       if (Arrays.equals(buffer, JAR_MAGIC)) {
         if (log.isDebugEnabled()) {

@@ -46,9 +46,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ResultType {
   /**
-   * Returns the return type.
-   *
-   * @return the return type
+   * 返回的类型
    */
   Class<?> value();
 }

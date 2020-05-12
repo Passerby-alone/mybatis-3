@@ -65,11 +65,7 @@ public class Resources {
   }
 
   /**
-   * Returns the URL of the resource on the classpath
-   *
-   * @param resource The resource to find
-   * @return The resource
-   * @throws java.io.IOException If the resource cannot be found or read
+   * 获得指定资源的url
    */
   public static URL getResourceURL(String resource) throws IOException {
     // 获得resource的url
@@ -93,23 +89,13 @@ public class Resources {
   }
 
   /**
-   * Returns a resource on the classpath as a Stream object
-   *
-   * @param resource The resource to find
-   * @return The resource
-   * @throws java.io.IOException If the resource cannot be found or read
+   * 获得自定资源的inputStream
    */
   public static InputStream getResourceAsStream(String resource) throws IOException {
     return getResourceAsStream(null, resource);
   }
 
   /**
-   * Returns a resource on the classpath as a Stream object
-   *
-   * @param loader   The classloader used to fetch the resource
-   * @param resource The resource to find
-   * @return The resource
-   * @throws java.io.IOException If the resource cannot be found or read
    */
   public static InputStream getResourceAsStream(ClassLoader loader, String resource) throws IOException {
     InputStream in = classLoaderWrapper.getResourceAsStream(resource, loader);

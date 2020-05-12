@@ -42,52 +42,37 @@ import org.apache.ibatis.mapping.StatementType;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+/**
+ * 通过sql语句获得主键的注解
+ * */
 public @interface SelectKey {
   /**
-   * Returns an SQL for retrieving a key value.
-   *
-   * @return an SQL for retrieving a key value
+   * 返回的sql语句
    */
   String[] statement();
 
   /**
-   * Returns property names that holds a key value.
-   * <p>
-   * If you specify multiple property, please separate using comma(',').
-   * </p>
-   *
-   * @return property names that separate with comma(',')
+   * 主键 java对象的属性
    */
   String keyProperty();
 
   /**
-   * Returns column names that retrieves a key value.
-   * <p>
-   * If you specify multiple column, please separate using comma(',').
-   * </p>
-   *
-   * @return column names that separate with comma(',')
+   * 主键对应的列
    */
   String keyColumn() default "";
 
   /**
-   * Returns whether retrieves a key value before executing insert/update statement.
-   *
-   * @return {@code true} if execute before; {@code false} if otherwise
+   * 在sql执行前，还是在sql执行后
    */
   boolean before();
 
   /**
-   * Returns the key value type.
-   *
-   * @return the key value type
+   * 返回类型
    */
   Class<?> resultType();
 
   /**
-   * Returns the statement type to use.
-   *
-   * @return the statement type
+   * 语句类型
    */
   StatementType statementType() default StatementType.PREPARED;
 }

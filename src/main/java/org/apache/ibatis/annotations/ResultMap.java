@@ -58,9 +58,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ResultMap {
   /**
-   * Returns result map names to use.
-   *
-   * @return result map names
+   * 结果集map
    */
   String[] value();
 }

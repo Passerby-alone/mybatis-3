@@ -25,20 +25,7 @@ import org.apache.ibatis.mapping.ResultSetType;
 import org.apache.ibatis.mapping.StatementType;
 
 /**
- * The annotation that specify options for customizing default behaviors.
- *
- * <p>
- * <b>How to use:</b>
- *
- * <pre>
- * public interface UserMapper {
- *   &#064;Option(useGeneratedKeys = true, keyProperty = "id")
- *   &#064;Insert("INSERT INTO users (name) VALUES(#{name})")
- *   boolean insert(User user);
- * }
- * </pre>
- *
- * @author Clinton Begin
+ * 操作可选项
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -58,81 +45,52 @@ public @interface Options {
   }
 
   /**
-   * Returns whether use the 2nd cache feature if assigned the cache.
-   *
-   * @return {@code true} if use; {@code false} if otherwise
+   * 是否使用缓存
    */
   boolean useCache() default true;
 
   /**
-   * Returns the 2nd cache flush strategy.
-   *
-   * @return the 2nd cache flush strategy
+   * 刷新缓存的策略
    */
   FlushCachePolicy flushCache() default FlushCachePolicy.DEFAULT;
 
   /**
-   * Returns the result set type.
-   *
-   * @return the result set type
+   * 结果类型
    */
   ResultSetType resultSetType() default ResultSetType.DEFAULT;
 
   /**
-   * Return the statement type.
-   *
-   * @return the statement type
+   * 语句类型
    */
   StatementType statementType() default StatementType.PREPARED;
 
   /**
-   * Returns the fetch size.
-   *
-   * @return the fetch size
+   * 加载数量
    */
   int fetchSize() default -1;
 
   /**
-   * Returns the statement timeout.
-   *
-   * @return the statement timeout
+   * 超时时间
    */
   int timeout() default -1;
 
   /**
-   * Returns whether use the generated keys feature supported by JDBC 3.0
-   *
-   * @return {@code true} if use; {@code false} if otherwise
+   * 是否生产主键
    */
   boolean useGeneratedKeys() default false;
 
   /**
-   * Returns property names that holds a key value.
-   * <p>
-   * If you specify multiple property, please separate using comma(',').
-   * </p>
-   *
-   * @return property names that separate with comma(',')
+   * 主键对应的类型
    */
   String keyProperty() default "";
 
   /**
-   * Returns column names that retrieves a key value.
-   * <p>
-   * If you specify multiple column, please separate using comma(',').
-   * </p>
-   *
-   * @return column names that separate with comma(',')
+   * 主键对应的列
    */
   String keyColumn() default "";
 
   /**
-   * Returns result set names.
-   * <p>
-   * If you specify multiple result set, please separate using comma(',').
-   * </p>
-   *
-   * @return result set names that separate with comma(',')
+   * 结果集
    */
   String resultSets() default "";
 }

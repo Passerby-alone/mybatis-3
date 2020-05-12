@@ -64,16 +64,15 @@ class BindingTest {
   @BeforeAll
   static void setup() throws Exception {
     DataSource dataSource = BaseDataTest.createBlogDataSource();
-    BaseDataTest.runScript(dataSource, BaseDataTest.BLOG_DDL);
-    BaseDataTest.runScript(dataSource, BaseDataTest.BLOG_DATA);
     TransactionFactory transactionFactory = new JdbcTransactionFactory();
     Environment environment = new Environment("Production", transactionFactory, dataSource);
     Configuration configuration = new Configuration(environment);
     configuration.setLazyLoadingEnabled(true);
     configuration.setUseActualParamName(false); // to test legacy style reference (#{0} #{1})
-    configuration.getTypeAliasRegistry().registerAlias(Blog.class);
+    configuration.getTypeAliasRegistry().registerAlias("asd", Blog.class);
     configuration.getTypeAliasRegistry().registerAlias(Post.class);
     configuration.getTypeAliasRegistry().registerAlias(Author.class);
+    // 先将mapper代理类放到Configuration中
     configuration.addMapper(BoundBlogMapper.class);
     configuration.addMapper(BoundAuthorMapper.class);
     sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
@@ -82,6 +81,7 @@ class BindingTest {
   @Test
   void shouldSelectBlogWithPostsUsingSubSelect() {
     try (SqlSession session = sqlSessionFactory.openSession()) {
+      // getMapper 返回代理实例类
       BoundBlogMapper mapper = session.getMapper(BoundBlogMapper.class);
       Blog b = mapper.selectBlogWithPostsUsingSubSelect(1);
       assertEquals(1, b.getId());
