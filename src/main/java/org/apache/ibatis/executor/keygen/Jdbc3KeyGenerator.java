@@ -72,13 +72,17 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
   }
 
   public void processBatch(MappedStatement ms, Statement stmt, Object parameter) {
+    // 获得keyProperties属性指定的属性名称，它表示主键对应的属性名称
     final String[] keyProperties = ms.getKeyProperties();
     if (keyProperties == null || keyProperties.length == 0) {
       return;
     }
+    // stmt.getGeneratedKeys()获取数据库自动生成的主键
     try (ResultSet rs = stmt.getGeneratedKeys()) {
+      // 获取ResultSet 对应的元数据信息
       final ResultSetMetaData rsmd = rs.getMetaData();
       final Configuration configuration = ms.getConfiguration();
+      // 检测数据库生成的主键的列数与keyProperties属性指定的列数是否匹配
       if (rsmd.getColumnCount() < keyProperties.length) {
         // Error?
       } else {

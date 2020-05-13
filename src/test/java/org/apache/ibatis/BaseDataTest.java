@@ -48,12 +48,11 @@ public abstract class BaseDataTest {
   }
 
   public static PooledDataSource createPooledDataSource(String resource) throws IOException {
-    Properties props = Resources.getResourceAsProperties(resource);
     PooledDataSource ds = new PooledDataSource();
-    ds.setDriver(props.getProperty("driver"));
-    ds.setUrl(props.getProperty("url"));
-    ds.setUsername(props.getProperty("username"));
-    ds.setPassword(props.getProperty("password"));
+    ds.setDriver("com.mysql.cj.jdbc.Driver");
+    ds.setUrl("jdbc:mysql://localhost:3306/yiyong-zhanggui?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true&rewriteBatchedStatements=true&serverTimezone=GMT%2B8");
+    ds.setUsername("root");
+    ds.setPassword("888888");
     return ds;
   }
 
@@ -75,7 +74,7 @@ public abstract class BaseDataTest {
   }
 
   public static DataSource createBlogDataSource() throws IOException, SQLException {
-    DataSource ds = createUnpooledDataSource(BLOG_PROPERTIES);
+    DataSource ds = createPooledDataSource(BLOG_PROPERTIES);
     return ds;
   }
 

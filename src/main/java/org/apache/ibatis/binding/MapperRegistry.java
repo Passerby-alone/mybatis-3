@@ -76,7 +76,7 @@ public class MapperRegistry {
       }
       boolean loadCompleted = false;
       try {
-        // 添加到knownMappers中
+        // 添加到knownMappers中 type: Mapper 接口
         knownMappers.put(type, new MapperProxyFactory<>(type));
         // 解析mapper的注解配置
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);

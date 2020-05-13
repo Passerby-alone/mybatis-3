@@ -18,9 +18,12 @@ package org.apache.ibatis.builder.annotation;
 import java.lang.reflect.Method;
 
 /**
- * @author Eduardo Macarron
+ * 注解方法的处理器
  */
 public class MethodResolver {
+  /**
+   * MapperAnnotationBuilder 对象
+   * */
   private final MapperAnnotationBuilder annotationBuilder;
   private final Method method;
 
@@ -30,6 +33,7 @@ public class MethodResolver {
   }
 
   public void resolve() {
+    // 指向注解方法的解析
     annotationBuilder.parseStatement(method);
   }
 
