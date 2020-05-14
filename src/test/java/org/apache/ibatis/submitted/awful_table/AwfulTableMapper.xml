@@ -205,4 +205,5 @@
       ACTIVE = #{active,jdbcType=BIT}
     where "CuStOmEr iD" = #{customerId,jdbcType=INTEGER}
   </update>
+
 </mapper>

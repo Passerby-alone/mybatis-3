@@ -29,7 +29,7 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 
 /**
- * @author Clinton Begin
+ * SqlSource构建器 负责将SQL语句中的#{} 替换成相应的 ? 占位符，并获取该 ？占位符的parameterObject对象
  */
 public class SqlSourceBuilder extends BaseBuilder {
 
@@ -39,22 +39,42 @@ public class SqlSourceBuilder extends BaseBuilder {
     super(configuration);
   }
 
+  /**
+   * 解析原始SQL 成为SqlSource对象
+   * originalSql：原始SQL
+   * parameterType：参数类型
+   * additionalParameters：附加参数集合
+   * */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
+    // 创建 ParameterMappingTokenHandler 对象 负责将 #{} 替换成 ?
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
+    // 创建 GenericTokenParser 对象 解析#{}
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
+    // 执行解析
     String sql = parser.parse(originalSql);
+    // 创建StaticSqlSource 静态文本SqlSource
     return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
   }
 
   private static class ParameterMappingTokenHandler extends BaseBuilder implements TokenHandler {
 
+    /**
+     * ParameterMapping 数组
+     * */
     private List<ParameterMapping> parameterMappings = new ArrayList<>();
+    /**
+     * 参数类型
+     * */
     private Class<?> parameterType;
+    /**
+     * additionalParameters 参数对应的 MetaObject对象
+     * */
     private MetaObject metaParameters;
 
     public ParameterMappingTokenHandler(Configuration configuration, Class<?> parameterType, Map<String, Object> additionalParameters) {
       super(configuration);
       this.parameterType = parameterType;
+      // 创建 additionalParameters 参数的对应的 MetaObject 对象
       this.metaParameters = configuration.newMetaObject(additionalParameters);
     }
 
@@ -64,12 +84,15 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     @Override
     public String handleToken(String content) {
+      // 构建 ParameterMapping 对象 并添加parameterMappings 中， 返回?占位符
       parameterMappings.add(buildParameterMapping(content));
       return "?";
     }
 
     private ParameterMapping buildParameterMapping(String content) {
+      // 构建成 Map 集合 content = #{age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler}
       Map<String, String> propertiesMap = parseParameterMapping(content);
+      // 获得属性的名字和类型
       String property = propertiesMap.get("property");
       Class<?> propertyType;
       if (metaParameters.hasGetter(property)) { // issue #448 get type from additional params
@@ -88,7 +111,9 @@ public class SqlSourceBuilder extends BaseBuilder {
           propertyType = Object.class;
         }
       }
+      // 创建ParameterMapping.Builder 对象
       ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, propertyType);
+      // 初始化 ParameterMapping.Builder 对象的属性
       Class<?> javaType = propertyType;
       String typeHandlerAlias = null;
       for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
@@ -117,9 +142,11 @@ public class SqlSourceBuilder extends BaseBuilder {
           throw new BuilderException("An invalid property '" + name + "' was found in mapping #{" + content + "}.  Valid properties are " + PARAMETER_PROPERTIES);
         }
       }
+      // 如果typeHandlerAliasf非空，则获得对应的 TypeHandler 对象。并设置到 ParameterMapping.Builder 对象中
       if (typeHandlerAlias != null) {
         builder.typeHandler(resolveTypeHandler(javaType, typeHandlerAlias));
       }
+      // 创建ParameterMapping对象
       return builder.build();
     }
 

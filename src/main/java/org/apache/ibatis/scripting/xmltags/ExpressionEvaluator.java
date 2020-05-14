@@ -28,22 +28,34 @@ import org.apache.ibatis.builder.BuilderException;
  */
 public class ExpressionEvaluator {
 
+  /**
+   * 判断表达式对应的值，是否为true
+   * */
   public boolean evaluateBoolean(String expression, Object parameterObject) {
+    // 获得表达式对应的值
     Object value = OgnlCache.getValue(expression, parameterObject);
+    // 如果是Boolean类型
     if (value instanceof Boolean) {
       return (Boolean) value;
     }
+    // 如果是Number类型，则判断等不等于0
     if (value instanceof Number) {
       return new BigDecimal(String.valueOf(value)).compareTo(BigDecimal.ZERO) != 0;
     }
+    // 如果即不是Boolean也不是Number类型 则判断为不为空
     return value != null;
   }
 
+  /**
+   * 获得表达式对应的值
+   * */
   public Iterable<?> evaluateIterable(String expression, Object parameterObject) {
+    // 获得表达式对应的值
     Object value = OgnlCache.getValue(expression, parameterObject);
     if (value == null) {
       throw new BuilderException("The expression '" + expression + "' evaluated to a null value.");
     }
+    // 如果是 Iterable 类型，直接返回
     if (value instanceof Iterable) {
       return (Iterable<?>) value;
     }
@@ -59,6 +71,7 @@ public class ExpressionEvaluator {
       }
       return answer;
     }
+    // 如果是 Map 类型 返回 Map.entrySet()集合
     if (value instanceof Map) {
       return ((Map) value).entrySet();
     }

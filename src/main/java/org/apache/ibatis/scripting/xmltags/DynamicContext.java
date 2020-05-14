@@ -27,22 +27,39 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * @author Clinton Begin
+ * 动态的SQL，用于每次执行SQL操作时，记录动态SQL处理后的最终SQL字符串
  */
 public class DynamicContext {
 
+  /**
+   * _parameter的键 参数
+   * */
   public static final String PARAMETER_OBJECT_KEY = "_parameter";
+  /**
+   * _databaseId 的键，数据库编号
+   * */
   public static final String DATABASE_ID_KEY = "_databaseId";
 
   static {
+    // 设置OGNL的属性访问器
     OgnlRuntime.setPropertyAccessor(ContextMap.class, new ContextAccessor());
   }
 
+  /**
+   * 上下文的参数集合
+   * */
   private final ContextMap bindings;
+  /**
+   * 生成后的 SQL
+   * */
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
+  /**
+   * 唯一编号
+   * */
   private int uniqueNumber = 0;
 
   public DynamicContext(Configuration configuration, Object parameterObject) {
+    // 初始化 bindings 参数 如果要使用OGNL表达式 那么parameterObject参数不能为空
     if (parameterObject != null && !(parameterObject instanceof Map)) {
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
       boolean existsTypeHandler = configuration.getTypeHandlerRegistry().hasTypeHandler(parameterObject.getClass());
@@ -50,6 +67,7 @@ public class DynamicContext {
     } else {
       bindings = new ContextMap(null, false);
     }
+    // 添加 bindings 的默认值
     bindings.put(PARAMETER_OBJECT_KEY, parameterObject);
     bindings.put(DATABASE_ID_KEY, configuration.getDatabaseId());
   }
@@ -76,6 +94,9 @@ public class DynamicContext {
 
   static class ContextMap extends HashMap<String, Object> {
     private static final long serialVersionUID = 2977601501966151582L;
+    /**
+     * parameter 参数对应的 MetaObject
+     * */
     private final MetaObject parameterMetaObject;
     private final boolean fallbackParameterObject;
 
@@ -94,7 +115,7 @@ public class DynamicContext {
       if (parameterMetaObject == null) {
         return null;
       }
-
+      // 从 parameterMetaObject 中，获得 key 对应的属性
       if (fallbackParameterObject && !parameterMetaObject.hasGetter(strKey)) {
         return parameterMetaObject.getOriginalObject();
       } else {
@@ -104,6 +125,9 @@ public class DynamicContext {
     }
   }
 
+  /**
+   * 上下文访问器
+   * */
   static class ContextAccessor implements PropertyAccessor {
 
     @Override
@@ -114,7 +138,7 @@ public class DynamicContext {
       if (map.containsKey(name) || result != null) {
         return result;
       }
-
+      // 如果没有，则从 PARAMETER_OBJECT_KEY 对应的 Map 中，获得属性
       Object parameterObject = map.get(PARAMETER_OBJECT_KEY);
       if (parameterObject instanceof Map) {
         return ((Map)parameterObject).get(name);

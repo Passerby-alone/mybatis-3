@@ -49,7 +49,7 @@ class LanguageDriverRegistryTest {
     LanguageDriver driver = registry.getDriver(RawLanguageDriver.class);
 
     registry.register(RawLanguageDriver.class);
-
+    System.out.println(driver == registry.getDriver(RawLanguageDriver.class));
     assertThat(driver).isSameAs(registry.getDriver(RawLanguageDriver.class));
   }
 

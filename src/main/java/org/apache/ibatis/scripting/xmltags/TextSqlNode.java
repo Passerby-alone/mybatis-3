@@ -23,7 +23,7 @@ import org.apache.ibatis.scripting.ScriptingException;
 import org.apache.ibatis.type.SimpleTypeRegistry;
 
 /**
- * @author Clinton Begin
+ * apply方法：直接文本替换 ${} -> value
  */
 public class TextSqlNode implements SqlNode {
   private final String text;
@@ -41,12 +41,15 @@ public class TextSqlNode implements SqlNode {
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
     GenericTokenParser parser = createParser(checker);
+    // 执行解析 如果存在${}就认为是动态文本 会将${}替换掉
     parser.parse(text);
+    // 判断是否为动态文本
     return checker.isDynamic();
   }
 
   @Override
   public boolean apply(DynamicContext context) {
+    // ${} 直接文本替换
     GenericTokenParser parser = createParser(new BindingTokenParser(context, injectionFilter));
     context.appendSql(parser.parse(text));
     return true;
@@ -68,12 +71,14 @@ public class TextSqlNode implements SqlNode {
 
     @Override
     public String handleToken(String content) {
+      // 初始化 value 属性到context中
       Object parameter = context.getBindings().get("_parameter");
       if (parameter == null) {
         context.getBindings().put("value", null);
       } else if (SimpleTypeRegistry.isSimpleType(parameter.getClass())) {
         context.getBindings().put("value", parameter);
       }
+      // 通过OGNL表达式获取value
       Object value = OgnlCache.getValue(content, context.getBindings());
       String srtValue = value == null ? "" : String.valueOf(value); // issue #274 return "" instead of "null"
       checkInjection(srtValue);
@@ -88,7 +93,9 @@ public class TextSqlNode implements SqlNode {
   }
 
   private static class DynamicCheckerTokenParser implements TokenHandler {
-
+    /**
+     * 是否动态文本
+     * */
     private boolean isDynamic;
 
     public DynamicCheckerTokenParser() {

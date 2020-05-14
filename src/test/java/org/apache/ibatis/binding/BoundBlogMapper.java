@@ -33,7 +33,7 @@ public interface BoundBlogMapper {
 
 //  //======================================================
 //
-  Blog selectBlogWithPostsUsingSubSelect(int id);
+  Blog selectBlogWithPostsUsingSubSelect(Map<String, Object> map);
 //
 //  //======================================================
 //

@@ -23,17 +23,32 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
- * @author Clinton Begin
+ * 参数映射
  */
 public class ParameterMapping {
 
   private Configuration configuration;
 
+  /**
+   * 属性的名字
+   * */
   private String property;
+  /**
+   * 参数类型 IN条件，OUT和INOUT是存储过程的条件
+   * */
   private ParameterMode mode;
+  /**
+   * 参数对应的Java类型
+   * */
   private Class<?> javaType = Object.class;
   private JdbcType jdbcType;
+  /**
+   * 对于数值类型，还有一个小数保留位数的设置，来确定小数点后保留的位数
+   * */
   private Integer numericScale;
+  /**
+   * 类型转换处理的类
+   * */
   private TypeHandler<?> typeHandler;
   private String resultMapId;
   private String jdbcTypeName;

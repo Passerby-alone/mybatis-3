@@ -19,18 +19,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Frank D. Martinez [mnesarco]
+ * LanguageDriver 注册表
  */
 public class LanguageDriverRegistry {
 
+  /**
+   * LanguageDriver 映射
+   * */
   private final Map<Class<? extends LanguageDriver>, LanguageDriver> LANGUAGE_DRIVER_MAP = new HashMap<>();
 
+  /**
+   * 默认的 LanguageDriver 类 如果没设置默认的LanguageDriver 则LanguageDriver = XMLLanguageDriver
+   * */
   private Class<? extends LanguageDriver> defaultDriverClass;
 
   public void register(Class<? extends LanguageDriver> cls) {
     if (cls == null) {
       throw new IllegalArgumentException("null is not a valid Language Driver");
     }
+    // computeIfAbsent: 如果key不存在 则存入mappingFunction return返回的值，如果key存在，则不会存入
+    // computeIfPresent: 如果key不存在 则不存存入，如果key存在，则会覆盖，value = function返回的值
     LANGUAGE_DRIVER_MAP.computeIfAbsent(cls, k -> {
       try {
         return k.getDeclaredConstructor().newInstance();
@@ -63,7 +71,9 @@ public class LanguageDriverRegistry {
   }
 
   public void setDefaultDriverClass(Class<? extends LanguageDriver> defaultDriverClass) {
+    // 注册到 LANGUAGE_DRIVER_MAP 中
     register(defaultDriverClass);
+    // 设置 defaultDriverClass 属性
     this.defaultDriverClass = defaultDriverClass;
   }
 

@@ -16,8 +16,11 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
- * @author Clinton Begin
+ * 每个 XML Node 会解析成对应的 SQL Node 对象
  */
 public interface SqlNode {
+  /**
+   * 应用当前 SQL Node 节点，返回boolean 是因为判断if test中的evaluateBoolean条件是否满足
+   * */
   boolean apply(DynamicContext context);
 }

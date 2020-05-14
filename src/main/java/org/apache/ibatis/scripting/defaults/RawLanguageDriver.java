@@ -22,18 +22,15 @@ import org.apache.ibatis.scripting.xmltags.XMLLanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * As of 3.2.4 the default XML language is able to identify static statements
- * and create a {@link RawSqlSource}. So there is no need to use RAW unless you
- * want to make sure that there is not any dynamic tag for any reason.
- *
- * @since 3.2.0
- * @author Eduardo Macarron
+ * 创建RalSqlSource对象
  */
 public class RawLanguageDriver extends XMLLanguageDriver {
 
   @Override
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
+    // 调用 XMLLanguageDriver.createSqlSource
     SqlSource source = super.createSqlSource(configuration, script, parameterType);
+    // 效验是否是RalSqlSource对象
     checkIsNotDynamic(source);
     return source;
   }

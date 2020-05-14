@@ -21,18 +21,27 @@ import org.apache.ibatis.parsing.GenericTokenParser;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * @author Clinton Begin
+ * <foreach /> 标签的 SqlNode实现类
  */
 public class ForEachSqlNode implements SqlNode {
   public static final String ITEM_PREFIX = "__frch_";
 
   private final ExpressionEvaluator evaluator;
+  /**
+   * 集合表达式
+   * */
   private final String collectionExpression;
   private final SqlNode contents;
   private final String open;
   private final String close;
   private final String separator;
+  /**
+   * 集合项
+   * */
   private final String item;
+  /**
+   * 索引变量
+   * */
   private final String index;
   private final Configuration configuration;
 
@@ -51,14 +60,17 @@ public class ForEachSqlNode implements SqlNode {
   @Override
   public boolean apply(DynamicContext context) {
     Map<String, Object> bindings = context.getBindings();
+    // 获得遍历的集合的 Iterable 对象，用于遍历
     final Iterable<?> iterable = evaluator.evaluateIterable(collectionExpression, bindings);
     if (!iterable.iterator().hasNext()) {
       return true;
     }
     boolean first = true;
+    // 添加open到sql中
     applyOpen(context);
     int i = 0;
     for (Object o : iterable) {
+      // 记录原始的 context对象
       DynamicContext oldContext = context;
       if (first || separator == null) {
         context = new PrefixedContext(context, "");
@@ -66,7 +78,7 @@ public class ForEachSqlNode implements SqlNode {
         context = new PrefixedContext(context, separator);
       }
       int uniqueNumber = context.getUniqueNumber();
-      // Issue #709
+      // 绑定到 context 中
       if (o instanceof Map.Entry) {
         @SuppressWarnings("unchecked")
         Map.Entry<Object, Object> mapEntry = (Map.Entry<Object, Object>) o;
@@ -76,6 +88,7 @@ public class ForEachSqlNode implements SqlNode {
         applyIndex(context, i, uniqueNumber);
         applyItem(context, o, uniqueNumber);
       }
+      // 执行 contents的应用
       contents.apply(new FilteredDynamicContext(configuration, context, index, item, uniqueNumber));
       if (first) {
         first = !((PrefixedContext) context).isPrefixApplied();
@@ -83,6 +96,7 @@ public class ForEachSqlNode implements SqlNode {
       context = oldContext;
       i++;
     }
+    // 添加close到context中
     applyClose(context);
     context.getBindings().remove(item);
     context.getBindings().remove(index);
@@ -151,6 +165,7 @@ public class ForEachSqlNode implements SqlNode {
     @Override
     public void appendSql(String sql) {
       GenericTokenParser parser = new GenericTokenParser("#{", "}", content -> {
+        // 将对 item 的访问，替换成 itemizeItem(item, index)
         String newContent = content.replaceFirst("^\\s*" + item + "(?![^.,:\\s])", itemizeItem(item, index));
         if (itemIndex != null && newContent.equals(content)) {
           newContent = content.replaceFirst("^\\s*" + itemIndex + "(?![^.,:\\s])", itemizeItem(itemIndex, index));

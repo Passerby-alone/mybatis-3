@@ -21,7 +21,7 @@ import java.util.List;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * @author Clinton Begin
+ * 继承 Trim sqlNode类
  */
 public class WhereSqlNode extends TrimSqlNode {
 

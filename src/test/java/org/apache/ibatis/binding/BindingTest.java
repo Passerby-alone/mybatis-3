@@ -15,48 +15,30 @@
  */
 package org.apache.ibatis.binding;
 
-import static com.googlecode.catchexception.apis.BDDCatchException.*;
-import static org.assertj.core.api.BDDAssertions.then;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javassist.util.proxy.Proxy;
-
-import javax.sql.DataSource;
-
-import net.sf.cglib.proxy.Factory;
-
 import org.apache.ibatis.BaseDataTest;
-import org.apache.ibatis.binding.MapperProxy.MapperMethodInvoker;
-import org.apache.ibatis.cursor.Cursor;
+import org.apache.ibatis.builder.xsd.PostMapper;
 import org.apache.ibatis.domain.blog.Author;
 import org.apache.ibatis.domain.blog.Blog;
-import org.apache.ibatis.domain.blog.DraftPost;
 import org.apache.ibatis.domain.blog.Post;
 import org.apache.ibatis.domain.blog.Section;
 import org.apache.ibatis.exceptions.PersistenceException;
-import org.apache.ibatis.executor.result.DefaultResultHandler;
 import org.apache.ibatis.mapping.Environment;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.RowBounds;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.apache.ibatis.session.*;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.googlecode.catchexception.apis.BDDCatchException.caughtException;
+import static com.googlecode.catchexception.apis.BDDCatchException.when;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.jupiter.api.Assertions.*;
 
 class BindingTest {
   private static SqlSessionFactory sqlSessionFactory;
@@ -73,8 +55,8 @@ class BindingTest {
     configuration.getTypeAliasRegistry().registerAlias(Post.class);
     configuration.getTypeAliasRegistry().registerAlias(Author.class);
     // 先将mapper代理类放到Configuration中
-//    configuration.addMapper(BoundBlogMapper.class);
-    configuration.addMapper(BoundAuthorMapper.class);
+    configuration.addMapper(BoundBlogMapper.class);
+//    configuration.addMapper(PostMapper.class);
     sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
   }
 
@@ -83,7 +65,11 @@ class BindingTest {
     try (SqlSession session = sqlSessionFactory.openSession()) {
       // getMapper 返回代理实例类
       BoundBlogMapper mapper = session.getMapper(BoundBlogMapper.class);
-      Blog b = mapper.selectBlogWithPostsUsingSubSelect(1);
+      Map<String, Object> params = new HashMap<>();
+      params.put("id", 123);
+      params.put("name", "13");
+      params.put("age", 12);
+      Blog b = mapper.selectBlogWithPostsUsingSubSelect(params);
       assertEquals(1, b.getId());
       assertNotNull(b.getAuthor());
       assertEquals(101, b.getAuthor().getId());

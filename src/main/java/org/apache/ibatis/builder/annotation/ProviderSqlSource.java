@@ -30,17 +30,28 @@ import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * @author Clinton Begin
- * @author Kazuki Shimizu
+ * 基于方法上注解@ProviderXXX的 SqlSource实现类
  */
 public class ProviderSqlSource implements SqlSource {
 
   private final Configuration configuration;
+  /**
+   * providerType：对应的@ProviderXXX
+   * */
   private final Class<?> providerType;
   private final LanguageDriver languageDriver;
   private final Method mapperMethod;
+  /**
+   * `@ProviderXXX` 注解的对应的方法
+   * */
   private final Method providerMethod;
+  /**
+   * `@ProviderXXX` 注解的对应的方法的参数名数组
+   * */
   private final String[] providerMethodArgumentNames;
+  /**
+   * `@ProviderXXX` 注解的对应的方法的参数类型数组
+   * */
   private final Class<?>[] providerMethodParameterTypes;
   private final ProviderContext providerContext;
   private final Integer providerContextIndex;
@@ -185,6 +196,7 @@ public class ProviderSqlSource implements SqlSource {
           + "' with specify parameter '" + (parameterObject == null ? null : parameterObject.getClass())
           + "' because SqlProvider method arguments for '" + mapperMethod + "' is an invalid combination.");
       }
+      // 获得参数类型
       Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
       return languageDriver.createSqlSource(configuration, sql, parameterType);
     } catch (BuilderException e) {

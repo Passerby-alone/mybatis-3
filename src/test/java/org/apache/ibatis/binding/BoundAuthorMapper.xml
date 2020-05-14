@@ -42,60 +42,61 @@
       <result column="favourite_section" property="favouriteSection" javaType="org.apache.ibatis.domain.blog.Section"/>
   </resultMap>
 
-  <insert id="insertAuthor" parameterType="org.apache.ibatis.domain.blog.Author">
-    <selectKey keyProperty="id" resultType="int" order="BEFORE">
-      select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
-    </selectKey>
-    insert into Author (id,username,password,email,bio,favourite_section)
-    values(
-    #{id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}
-    )
-  </insert>
 
-  <insert id="insertAuthorInvalidSelectKey">
-    <selectKey keyProperty="id" resultType="int" order="BEFORE">
-      select CCAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
-    </selectKey>
-    insert into Author (id,username,password,email,bio,favourite_section)
-    values(
-    #{id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}
-    )
-  </insert>
+  <!--<insert id="insertAuthor" parameterType="org.apache.ibatis.domain.blog.Author">-->
+    <!--<selectKey keyProperty="id" resultType="int" order="BEFORE">-->
+      <!--select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1-->
+    <!--</selectKey>-->
+    <!--insert into Author (id,username,password,email,bio,favourite_section)-->
+    <!--values(-->
+    <!--#{id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}-->
+    <!--)-->
+  <!--</insert>-->
 
-  <insert id="insertAuthorInvalidInsert">
-    <selectKey keyProperty="id" resultType="int" order="BEFORE">
-      select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
-    </selectKey>
-    insert into Author (id,username,password,email,bio,favourite_section_xyz)
-    values(
-    #{id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}
-    )
-  </insert>
+  <!--<insert id="insertAuthorInvalidSelectKey">-->
+    <!--<selectKey keyProperty="id" resultType="int" order="BEFORE">-->
+      <!--select CCAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1-->
+    <!--</selectKey>-->
+    <!--insert into Author (id,username,password,email,bio,favourite_section)-->
+    <!--values(-->
+    <!--#{id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}-->
+    <!--)-->
+  <!--</insert>-->
 
-  <insert id="insertAuthorDynamic" parameterType="org.apache.ibatis.domain.blog.Author">
-    <selectKey keyProperty="id" resultType="int" order="BEFORE">
-      select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
-    </selectKey>
-    insert into Author (id,username,password,email,bio,favourite_section)
-    values(
-    ${id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}
-    )
-  </insert>
+  <!--<insert id="insertAuthorInvalidInsert">-->
+    <!--<selectKey keyProperty="id" resultType="int" order="BEFORE">-->
+      <!--select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1-->
+    <!--</selectKey>-->
+    <!--insert into Author (id,username,password,email,bio,favourite_section_xyz)-->
+    <!--values(-->
+    <!--#{id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}-->
+    <!--)-->
+  <!--</insert>-->
 
-  <select id="findPostsInList" parameterType="list" resultType="org.apache.ibatis.domain.blog.Post">
-    select * from post
-    where id in (#{list[0]},#{list[1]},#{list[2]})
-  </select>
+  <!--<insert id="insertAuthorDynamic" parameterType="org.apache.ibatis.domain.blog.Author">-->
+    <!--&lt;!&ndash;<selectKey keyProperty="id" resultType="int" order="BEFORE">&ndash;&gt;-->
+      <!--&lt;!&ndash;select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1&ndash;&gt;-->
+    <!--&lt;!&ndash;</selectKey>&ndash;&gt;-->
+    <!--insert into Author (id,username,password,email,bio,favourite_section)-->
+    <!--values(-->
+    <!--${id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection:VARCHAR}-->
+    <!--)-->
+  <!--</insert>-->
 
-  <select id="findPostsInArray" parameterType="list" resultType="org.apache.ibatis.domain.blog.Post">
-    select * from post
-    where id in (#{array[0]},#{array[1]},#{array[2]})
-  </select>
+  <!--<select id="findPostsInList" parameterType="list" resultType="org.apache.ibatis.domain.blog.Post">-->
+    <!--select * from post-->
+    <!--where id in (#{list[0]},#{list[1]},#{list[2]})-->
+  <!--</select>-->
 
-  <select id="findThreeSpecificPosts" parameterType="map" resultType="org.apache.ibatis.domain.blog.Post">
-    select * from post
-    where id in (#{one},#{two},#{2})
-  </select>
+  <!--<select id="findPostsInArray" parameterType="list" resultType="org.apache.ibatis.domain.blog.Post">-->
+    <!--select * from post-->
+    <!--where id in (#{array[0]},#{array[1]},#{array[2]})-->
+  <!--</select>-->
+
+  <!--<select id="findThreeSpecificPosts" parameterType="map" resultType="org.apache.ibatis.domain.blog.Post">-->
+    <!--select * from post-->
+    <!--where id in (#{one},#{two},#{2})-->
+  <!--</select>-->
 
 
 </mapper>

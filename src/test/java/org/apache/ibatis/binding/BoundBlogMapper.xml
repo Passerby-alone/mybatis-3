@@ -75,8 +75,22 @@
         <!--</constructor>-->
     <!--</resultMap>-->
 
-  <select id="selectBlogWithPostsUsingSubSelect" parameterType="int">
-    select * from Blog where id = #{id}
+  <select id="selectBlogWithPostsUsingSubSelect" parameterType="java.util.Map">
+    select * from Blog 
+    <where>
+        <if test="_parameter.age != null">
+            and age = #{age}
+        </if>
+        <if test="_parameter.id != null">
+            and id = #{id}
+        </if>
+        <if test="_parameter.age != null">
+            and age = #{age}
+        </if>
+        <if test="_parameter.name != null">
+            and age = #{name}
+        </if>
+    </where>
   </select>
 
   <!--<select id="selectAuthorWithInlineParams"-->

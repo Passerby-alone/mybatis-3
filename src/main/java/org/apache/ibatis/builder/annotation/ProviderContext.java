@@ -18,14 +18,17 @@ package org.apache.ibatis.builder.annotation;
 import java.lang.reflect.Method;
 
 /**
- * The context object for sql provider method.
- *
- * @author Kazuki Shimizu
- * @since 3.4.5
+ * ProviderSqlSource上下文
  */
 public final class ProviderContext {
 
+  /**
+   * Mapper 接口
+   * */
   private final Class<?> mapperType;
+  /**
+   * Mapper 方法
+   * */
   private final Method mapperMethod;
   private final String databaseId;
 
