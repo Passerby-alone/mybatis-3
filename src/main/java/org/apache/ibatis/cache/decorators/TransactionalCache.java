@@ -30,10 +30,18 @@ import org.apache.ibatis.logging.LogFactory;
 public class TransactionalCache implements Cache {
 
   private static final Log log = LogFactory.getLog(TransactionalCache.class);
-
+  /**
+   * 委托的 Cache 对象实现类
+   * */
   private final Cache delegate;
   private boolean clearOnCommit;
+  /**
+   * 待提交的 KV 映射
+   * */
   private final Map<Object, Object> entriesToAddOnCommit;
+  /**
+   * 查找不到的 KEY 集合
+   * */
   private final Set<Object> entriesMissedInCache;
 
   public TransactionalCache(Cache delegate) {
@@ -104,9 +112,11 @@ public class TransactionalCache implements Cache {
   }
 
   private void flushPendingEntries() {
+    // 将entriesToAddOnCommit 刷入 delegate 中
     for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
       delegate.putObject(entry.getKey(), entry.getValue());
     }
+    // 将缺失的 entriesMissedInCache 刷入 delegate 中
     for (Object entry : entriesMissedInCache) {
       if (!entriesToAddOnCommit.containsKey(entry)) {
         delegate.putObject(entry, null);

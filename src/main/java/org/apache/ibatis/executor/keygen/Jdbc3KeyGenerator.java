@@ -44,17 +44,14 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
- * @author Clinton Begin
- * @author Kazuki Shimizu
+ * 基于 Statement#getGeneratedKeys() 适用于MYSQL主键生成
  */
 public class Jdbc3KeyGenerator implements KeyGenerator {
 
   private static final String SECOND_GENERIC_PARAM_NAME = ParamNameResolver.GENERIC_NAME_PREFIX + "2";
 
   /**
-   * A shared instance.
-   *
-   * @since 3.4.3
+   * 共享的单例
    */
   public static final Jdbc3KeyGenerator INSTANCE = new Jdbc3KeyGenerator();
 
@@ -63,7 +60,8 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
 
   @Override
   public void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
-    // do nothing
+    // 空实现
+    // 因为Mysql都是在SQL执行后，才生成的
   }
 
   @Override
@@ -73,6 +71,7 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
 
   public void processBatch(MappedStatement ms, Statement stmt, Object parameter) {
     // 获得keyProperties属性指定的属性名称，它表示主键对应的属性名称
+    // 获得主键属性的配置。如果为空，则直接返回，说明不需要主键
     final String[] keyProperties = ms.getKeyProperties();
     if (keyProperties == null || keyProperties.length == 0) {
       return;
@@ -86,6 +85,7 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
       if (rsmd.getColumnCount() < keyProperties.length) {
         // Error?
       } else {
+        // 设置主键m们，到参数 parameter 中
         assignKeys(configuration, rs, rsmd, keyProperties, parameter);
       }
     } catch (Exception e) {
@@ -111,6 +111,7 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
 
   private void assignKeysToParam(Configuration configuration, ResultSet rs, ResultSetMetaData rsmd,
       String[] keyProperties, Object parameter) throws SQLException {
+    // 将参数包装成 Collection 对象
     Collection<?> params = collectionize(parameter);
     if (params.isEmpty()) {
       return;
@@ -119,6 +120,7 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     for (int i = 0; i < keyProperties.length; i++) {
       assignerList.add(new KeyAssigner(configuration, rsmd, i + 1, null, keyProperties[i]));
     }
+    // 遍历 params 数组
     Iterator<?> iterator = params.iterator();
     while (rs.next()) {
       if (!iterator.hasNext()) {
@@ -276,6 +278,7 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
         if (typeHandler == null) {
           // Error?
         } else {
+          // 把当前的 ResultSet 对象的主键们，赋值给 obj 对象的对应属性
           Object value = typeHandler.getResult(rs, columnPosition);
           metaParam.setValue(propertyName, value);
         }

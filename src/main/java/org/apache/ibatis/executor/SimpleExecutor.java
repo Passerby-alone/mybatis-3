@@ -32,7 +32,9 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * @author Clinton Begin
+ * 简单的BaseExecutor实现类
+ * 每次读写，都创建对应的 Statement对象
+ * 执行完成后，关闭 Statement 对象
  */
 public class SimpleExecutor extends BaseExecutor {
 
@@ -49,6 +51,7 @@ public class SimpleExecutor extends BaseExecutor {
       stmt = prepareStatement(handler, ms.getStatementLog());
       return handler.update(stmt);
     } finally {
+      // 关闭statement对象
       closeStatement(stmt);
     }
   }
@@ -58,8 +61,11 @@ public class SimpleExecutor extends BaseExecutor {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      // 创建StatementHandler对象
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+      // 初始化 StatementHandler 对象
       stmt = prepareStatement(handler, ms.getStatementLog());
+      // 执行 StatementHandler，进行读操作
       return handler.query(stmt, resultHandler);
     } finally {
       closeStatement(stmt);
@@ -78,13 +84,20 @@ public class SimpleExecutor extends BaseExecutor {
 
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
+    // 不存在批量操作的情况，所以直接返回空数组
     return Collections.emptyList();
   }
 
+  /**
+   * 初始化StatementHandler对象
+   * */
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
+    // 获得连接
     Connection connection = getConnection(statementLog);
+    // 创建 Statement 或 PrepareStatement 对象
     stmt = handler.prepare(connection, transaction.getTimeout());
+    // 设置 SQL 上的参数，例如 PrepareStatement 对象上的占位符
     handler.parameterize(stmt);
     return stmt;
   }

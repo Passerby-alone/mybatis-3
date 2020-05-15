@@ -160,7 +160,7 @@ public class Configuration {
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
   /**
-   * cache 对象集合
+   * 二级缓存cache 对象集合
    * */
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
@@ -645,7 +645,11 @@ public class Configuration {
     return newExecutor(transaction, defaultExecutorType);
   }
 
+  /**
+   * 创建 NewExecutor 对象
+   * */
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+    // 如果没有 则使用 默认的执行器 SimpleExecutor
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
     Executor executor;
@@ -656,9 +660,11 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+    // 如果开启缓存，则使用CachingExecutor执行器
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    // 应用插件
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

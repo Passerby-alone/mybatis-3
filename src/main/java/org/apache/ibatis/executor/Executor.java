@@ -28,26 +28,37 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * @author Clinton Begin
+ * 执行器接口
  */
 public interface Executor {
 
   ResultHandler NO_RESULT_HANDLER = null;
 
+  /**
+   * 更新语句 insert | update | delete 语句 由MappedStatement SqlCommandType 决定
+   * */
   int update(MappedStatement ms, Object parameter) throws SQLException;
-
+  /**
+   * 查询， 带CacheKey可能会走缓存
+   * */
   <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey cacheKey, BoundSql boundSql) throws SQLException;
 
   <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException;
 
   <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException;
 
+  /**
+   * 刷入批处理语句
+   * */
   List<BatchResult> flushStatements() throws SQLException;
 
   void commit(boolean required) throws SQLException;
 
   void rollback(boolean required) throws SQLException;
 
+  /**
+   * 创建缓存的cacheKey对象
+   * */
   CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql);
 
   boolean isCached(MappedStatement ms, CacheKey key);

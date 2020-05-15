@@ -21,14 +21,24 @@ import java.util.List;
 import org.apache.ibatis.mapping.MappedStatement;
 
 /**
- * @author Jeff Butler
+ * 相同SQL集合的结果
  */
 public class BatchResult {
 
+  /**
+   * MapperStatement 对象
+   * */
   private final MappedStatement mappedStatement;
   private final String sql;
+  /**
+   * 参数对象集合
+   *
+   * 每一个元素，对应一次操作的参数
+   * */
   private final List<Object> parameterObjects;
-
+  /**
+   * 更新数量集合
+   * */
   private int[] updateCounts;
 
   public BatchResult(MappedStatement mappedStatement, String sql) {

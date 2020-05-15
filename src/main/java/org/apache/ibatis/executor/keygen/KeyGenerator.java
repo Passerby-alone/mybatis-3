@@ -21,12 +21,20 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 
 /**
- * @author Clinton Begin
+ * 主键生成器接口 目前 MyBatis 默认的 KeyGenerator 实现类，都是基于数据库来实现主键自增的功能
  */
 public interface KeyGenerator {
 
+  /**
+   * SQL 执行前
+   * @param parameter: @Options(useGeneratedKeys = true, keyProperty = "id")
+   *                 KeyGenerator 在获取到主键后，会设置回 parameter 参数的对应属性。
+   * */
   void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
 
+  /**
+   * SQL执行后
+   * */
   void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
 
 }

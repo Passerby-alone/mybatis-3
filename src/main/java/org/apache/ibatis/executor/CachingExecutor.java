@@ -33,16 +33,22 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * @author Clinton Begin
- * @author Eduardo Macarron
+ * 支持二级缓存的Executor实现类
  */
 public class CachingExecutor implements Executor {
 
+  /**
+   * 被委托的 Executor对象
+   * */
   private final Executor delegate;
+  /**
+   * 支持事务的缓存管理器
+   * */
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
   public CachingExecutor(Executor delegate) {
     this.delegate = delegate;
+    // 设置 delegate 被当前执行器所包装
     delegate.setExecutorWrapper(this);
   }
 
@@ -94,13 +100,17 @@ public class CachingExecutor implements Executor {
       throws SQLException {
     Cache cache = ms.getCache();
     if (cache != null) {
+      // 是否需要刷新缓存
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
         ensureNoOutParams(ms, boundSql);
         @SuppressWarnings("unchecked")
+          // 从二级缓存中获取
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          // 如果二级缓存没有，则调用委托类进行数据库查询
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // 再把缓存的结果放到二级缓存中
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;

@@ -34,7 +34,9 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * @author Clinton Begin
+ * 可重复使用的 Executor 对象
+ * 每次进行读写操作，优先从statementMap中获取，如果不存在，则进行创建
+ * 执行完成后，不会关闭Statement
  */
 public class ReuseExecutor extends BaseExecutor {
 
@@ -70,10 +72,12 @@ public class ReuseExecutor extends BaseExecutor {
 
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
+    // 关闭缓存的 Statement 对象们
     for (Statement stmt : statementMap.values()) {
       closeStatement(stmt);
     }
     statementMap.clear();
+    // 返回空集合
     return Collections.emptyList();
   }
 
@@ -81,14 +85,20 @@ public class ReuseExecutor extends BaseExecutor {
     Statement stmt;
     BoundSql boundSql = handler.getBoundSql();
     String sql = boundSql.getSql();
+    // statementMap 中是否存在
     if (hasStatementFor(sql)) {
+      // 从缓存中获得 Statement 或 PrepareStatement 对象
       stmt = getStatement(sql);
+      // 设置事务超时时间
       applyTransactionTimeout(stmt);
     } else {
       Connection connection = getConnection(statementLog);
+      // 创建 Statement 或 PrepareStatement 对象
       stmt = handler.prepare(connection, transaction.getTimeout());
+      // 添加到缓存中
       putStatement(sql, stmt);
     }
+    // 设置 SQL 上的参数，例如 PrepareStatement 对象上的占位符
     handler.parameterize(stmt);
     return stmt;
   }

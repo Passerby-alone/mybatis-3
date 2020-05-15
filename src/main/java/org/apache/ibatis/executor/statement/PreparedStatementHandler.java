@@ -33,7 +33,7 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 /**
- * @author Clinton Begin
+ * PreparedStatement的实现类
  */
 public class PreparedStatementHandler extends BaseStatementHandler {
 
@@ -44,9 +44,12 @@ public class PreparedStatementHandler extends BaseStatementHandler {
   @Override
   public int update(Statement statement) throws SQLException {
     PreparedStatement ps = (PreparedStatement) statement;
+    // 执行写操作
     ps.execute();
+    // 获得更新数量
     int rows = ps.getUpdateCount();
     Object parameterObject = boundSql.getParameterObject();
+    // 执行 keyGenerator 的后置处理逻辑
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     keyGenerator.processAfter(executor, mappedStatement, ps, parameterObject);
     return rows;
@@ -75,6 +78,7 @@ public class PreparedStatementHandler extends BaseStatementHandler {
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
+    // 处理 Jdbc3KeyGenerator 情况
     if (mappedStatement.getKeyGenerator() instanceof Jdbc3KeyGenerator) {
       String[] keyColumnNames = mappedStatement.getKeyColumns();
       if (keyColumnNames == null) {

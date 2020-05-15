@@ -36,14 +36,23 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * @author Jeff Butler
+ * 批量执行的 Executor实现类
  */
 public class BatchExecutor extends BaseExecutor {
 
   public static final int BATCH_UPDATE_RETURN_VALUE = Integer.MIN_VALUE + 1002;
 
+  /**
+   * Statement 数组
+   * */
   private final List<Statement> statementList = new ArrayList<>();
+  /**
+   * 批次执行的BatchResult 数组
+   * */
   private final List<BatchResult> batchResultList = new ArrayList<>();
+  /**
+   * 当前的sql
+   * */
   private String currentSql;
   private MappedStatement currentStatement;
 
@@ -54,15 +63,21 @@ public class BatchExecutor extends BaseExecutor {
   @Override
   public int doUpdate(MappedStatement ms, Object parameterObject) throws SQLException {
     final Configuration configuration = ms.getConfiguration();
+    // 创建 StatementHandler 对象
     final StatementHandler handler = configuration.newStatementHandler(this, ms, parameterObject, RowBounds.DEFAULT, null, null);
     final BoundSql boundSql = handler.getBoundSql();
     final String sql = boundSql.getSql();
     final Statement stmt;
+    // 如果匹配最后一次 currentSql 和 currentStatement，则聚合到 BatchResult中
     if (sql.equals(currentSql) && ms.equals(currentStatement)) {
+      // 获得最后一次的 statement 对象
       int last = statementList.size() - 1;
       stmt = statementList.get(last);
+      // 设置事务超时时间
       applyTransactionTimeout(stmt);
-      handler.parameterize(stmt);// fix Issues 322
+      // 设置SQL的参数设置 将 ? 占位符 替换成参数值
+      handler.parameterize(stmt);
+      // 获取最后一次执行的BatchResult
       BatchResult batchResult = batchResultList.get(last);
       batchResult.addParameterObject(parameterObject);
     } else {
@@ -72,8 +87,10 @@ public class BatchExecutor extends BaseExecutor {
       currentSql = sql;
       currentStatement = ms;
       statementList.add(stmt);
+      // 创建BatchResult对象，添加到 batchResultList 中
       batchResultList.add(new BatchResult(ms, sql, parameterObject));
     }
+    // 批处理
     handler.batch(stmt);
     return BATCH_UPDATE_RETURN_VALUE;
   }
@@ -83,8 +100,10 @@ public class BatchExecutor extends BaseExecutor {
       throws SQLException {
     Statement stmt = null;
     try {
+      // 刷入批处理语句
       flushStatements();
       Configuration configuration = ms.getConfiguration();
+      // 创建 StatementHandler 语句
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameterObject, rowBounds, resultHandler, boundSql);
       Connection connection = getConnection(ms.getStatementLog());
       stmt = handler.prepare(connection, transaction.getTimeout());
@@ -111,16 +130,21 @@ public class BatchExecutor extends BaseExecutor {
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) throws SQLException {
     try {
+      // 如果 isRollback 为 ture, 返回空的数组
       List<BatchResult> results = new ArrayList<>();
       if (isRollback) {
         return Collections.emptyList();
       }
+      // 遍历 statementList 和 batchResultList 数组，逐个提交批处理
       for (int i = 0, n = statementList.size(); i < n; i++) {
+        // 获得 Statement 和 BatchResult 对象
         Statement stmt = statementList.get(i);
         applyTransactionTimeout(stmt);
         BatchResult batchResult = batchResultList.get(i);
         try {
+          // 批量执行
           batchResult.setUpdateCounts(stmt.executeBatch());
+          // 处理主键生成
           MappedStatement ms = batchResult.getMappedStatement();
           List<Object> parameterObjects = batchResult.getParameterObjects();
           KeyGenerator keyGenerator = ms.getKeyGenerator();
@@ -132,7 +156,7 @@ public class BatchExecutor extends BaseExecutor {
               keyGenerator.processAfter(this, ms, stmt, parameter);
             }
           }
-          // Close statement to close cursor #1109
+          // 关闭 statement 对象
           closeStatement(stmt);
         } catch (BatchUpdateException e) {
           StringBuilder message = new StringBuilder();
@@ -148,10 +172,12 @@ public class BatchExecutor extends BaseExecutor {
           }
           throw new BatchExecutorException(message.toString(), e, results, batchResult);
         }
+        // 添加到结果集
         results.add(batchResult);
       }
       return results;
     } finally {
+      // 关闭 Statement
       for (Statement stmt : statementList) {
         closeStatement(stmt);
       }

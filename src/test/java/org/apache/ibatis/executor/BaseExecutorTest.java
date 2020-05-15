@@ -29,25 +29,38 @@ import javassist.util.proxy.Proxy;
 import javax.sql.DataSource;
 
 import org.apache.ibatis.BaseDataTest;
+import org.apache.ibatis.binding.BoundBlogMapper;
 import org.apache.ibatis.domain.blog.Author;
 import org.apache.ibatis.domain.blog.Blog;
 import org.apache.ibatis.domain.blog.Post;
 import org.apache.ibatis.domain.blog.Section;
+import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.RowBounds;
+import org.apache.ibatis.session.*;
 import org.apache.ibatis.transaction.Transaction;
+import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransaction;
+import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class BaseExecutorTest extends BaseDataTest {
   protected final Configuration config;
   private static DataSource ds;
+  private static SqlSessionFactory sqlSessionFactory;
 
   @BeforeAll
   static void setup() throws Exception {
     ds = createBlogDataSource();
+    TransactionFactory transactionFactory = new JdbcTransactionFactory();
+    Environment environment = new Environment("Production", transactionFactory, ds);
+    Configuration configuration = new Configuration(environment);
+    configuration.setLazyLoadingEnabled(true);
+    configuration.setCacheEnabled(false);
+    configuration.setUseActualParamName(false); // to test legacy style reference (#{0} #{1})
+    // 先将mapper代理类放到Configuration中
+    configuration.addMapper(MallMapper.class);
+    sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
   }
 
   BaseExecutorTest() {
@@ -465,4 +478,35 @@ class BaseExecutorTest extends BaseDataTest {
     return new SimpleExecutor(config, transaction);
   }
 
+  @Test
+  public void testMybatisFirstCache() {
+
+    SqlSession session = sqlSessionFactory.openSession();
+    MallMapper mallMapper = session.getMapper(MallMapper.class);
+    List<Object> objects = mallMapper.selectMall();
+    System.out.println();
+
+//    mallMapper.update();
+    SqlSession session2 = sqlSessionFactory.openSession();
+    // openSession()产生的Executor已是新的Executor 跟上面是两个不同的对象
+    MallMapper mallMapper2 = session2.getMapper(MallMapper.class);
+    mallMapper2.selectMall();
+  }
+
+  @Test
+  public void testMybatisSecondCache() {
+
+    Configuration configuration = sqlSessionFactory.getConfiguration();
+    configuration.setCacheEnabled(true);
+
+    SqlSession session = sqlSessionFactory.openSession();
+    MallMapper mallMapper = session.getMapper(MallMapper.class);
+    List<Object> objects = mallMapper.selectMall();
+    System.out.println();
+    session.close();
+
+    SqlSession session2 = sqlSessionFactory.openSession();
+    MallMapper mallMapper2 = session2.getMapper(MallMapper.class);
+    mallMapper2.selectMall();
+  }
 }
