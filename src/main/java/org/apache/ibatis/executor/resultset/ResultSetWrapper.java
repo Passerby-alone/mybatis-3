@@ -37,23 +37,50 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
- * @author Iwao AVE!
+ * resultSet 包装器
  */
 public class ResultSetWrapper {
 
+  /**
+   * resultSet 对象
+   * */
   private final ResultSet resultSet;
   private final TypeHandlerRegistry typeHandlerRegistry;
+  /**
+   * 字段的名字的数组
+   * */
   private final List<String> columnNames = new ArrayList<>();
+  /**
+   * 字段的 Java Type数组
+   * */
   private final List<String> classNames = new ArrayList<>();
+  /**
+   * 字段的 jdbc 数组
+   * */
   private final List<JdbcType> jdbcTypes = new ArrayList<>();
+
+  /**
+   * TypeHandler 的映射
+   *
+   * key1: 字段名
+   * key2: Java类型 value: 类型转换
+   * */
   private final Map<String, Map<Class<?>, TypeHandler<?>>> typeHandlerMap = new HashMap<>();
+  /**
+   * 有mapped 的字段的名字的映射
+   * value: 字段的名字的数组
+   * */
   private final Map<String, List<String>> mappedColumnNamesMap = new HashMap<>();
+  /**
+   * 无mapped 的字段的名字的映射
+   * */
   private final Map<String, List<String>> unMappedColumnNamesMap = new HashMap<>();
 
   public ResultSetWrapper(ResultSet rs, Configuration configuration) throws SQLException {
     super();
     this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
     this.resultSet = rs;
+    // 遍历 ResultSetMetaData 的字段们，解析出 columnNames，jdbcTypes， classNames属性
     final ResultSetMetaData metaData = rs.getMetaData();
     final int columnCount = metaData.getColumnCount();
     for (int i = 1; i <= columnCount; i++) {
@@ -89,18 +116,14 @@ public class ResultSetWrapper {
   }
 
   /**
-   * Gets the type handler to use when reading the result set.
-   * Tries to get from the TypeHandlerRegistry by searching for the property type.
-   * If not found it gets the column JDBC type and tries to get a handler for it.
+   * 获得指定字段名的指定 JavaType 类型的 TypeHandler 对象
+   * @param propertyType: java类型
+   * @param columnName: 列名
    *
-   * @param propertyType
-   *          the property type
-   * @param columnName
-   *          the column name
-   * @return the type handler
    */
   public TypeHandler<?> getTypeHandler(Class<?> propertyType, String columnName) {
     TypeHandler<?> handler = null;
+    // 先从typeHandlerMap中获取列名所对应的类型转换
     Map<Class<?>, TypeHandler<?>> columnHandlers = typeHandlerMap.get(columnName);
     if (columnHandlers == null) {
       columnHandlers = new HashMap<>();
@@ -108,13 +131,18 @@ public class ResultSetWrapper {
     } else {
       handler = columnHandlers.get(propertyType);
     }
+    // 如果获取不到
     if (handler == null) {
+      // 获得JDBC 类型
       JdbcType jdbcType = getJdbcType(columnName);
+      // 获得类型转换对象
       handler = typeHandlerRegistry.getTypeHandler(propertyType, jdbcType);
       // Replicate logic of UnknownTypeHandler#resolveTypeHandler
       // See issue #59 comment 10
       if (handler == null || handler instanceof UnknownTypeHandler) {
+        // 使用 classNames 中的类型，进行继续查找 TypeHandler 对象
         final int index = columnNames.indexOf(columnName);
+        // 获得java类型
         final Class<?> javaType = resolveClass(classNames.get(index));
         if (javaType != null && jdbcType != null) {
           handler = typeHandlerRegistry.getTypeHandler(javaType, jdbcType);
@@ -124,6 +152,7 @@ public class ResultSetWrapper {
           handler = typeHandlerRegistry.getTypeHandler(jdbcType);
         }
       }
+      // 如果获取不到，则使用ObjectTypeHandler对象
       if (handler == null || handler instanceof UnknownTypeHandler) {
         handler = new ObjectTypeHandler();
       }
@@ -144,11 +173,16 @@ public class ResultSetWrapper {
     return null;
   }
 
+  /**
+   * 初始化有 mapped 和无 mapped的字段的名字数组
+   * */
   private void loadMappedAndUnmappedColumnNames(ResultMap resultMap, String columnPrefix) throws SQLException {
     List<String> mappedColumnNames = new ArrayList<>();
     List<String> unmappedColumnNames = new ArrayList<>();
+    // 将 columnPrefix 转换成大写，并拼接到 resultMap.mappedColumns 属性上
     final String upperColumnPrefix = columnPrefix == null ? null : columnPrefix.toUpperCase(Locale.ENGLISH);
     final Set<String> mappedColumns = prependPrefixes(resultMap.getMappedColumns(), upperColumnPrefix);
+    // 遍历 columnNames 数组， 根据是否在 mappedColumns 中，分别添加到 mappedColumnNames 和 unmappedColumnNames 中
     for (String columnName : columnNames) {
       final String upperColumnName = columnName.toUpperCase(Locale.ENGLISH);
       if (mappedColumns.contains(upperColumnName)) {
@@ -157,22 +191,28 @@ public class ResultSetWrapper {
         unmappedColumnNames.add(columnName);
       }
     }
+    // 分别将mappedColumnNames，unmappedColumnNames放到mappedColumnNamesMap，unMappedColumnNamesMap中
     mappedColumnNamesMap.put(getMapKey(resultMap, columnPrefix), mappedColumnNames);
     unMappedColumnNamesMap.put(getMapKey(resultMap, columnPrefix), unmappedColumnNames);
   }
 
   public List<String> getMappedColumnNames(ResultMap resultMap, String columnPrefix) throws SQLException {
+    // 获得对应的 mapped 数组
     List<String> mappedColumnNames = mappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     if (mappedColumnNames == null) {
+      // 初始化
       loadMappedAndUnmappedColumnNames(resultMap, columnPrefix);
+      // 重新获得对应的 mapped数组
       mappedColumnNames = mappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     }
     return mappedColumnNames;
   }
 
   public List<String> getUnmappedColumnNames(ResultMap resultMap, String columnPrefix) throws SQLException {
+    // 获得对应的 unmapped 数组
     List<String> unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     if (unMappedColumnNames == null) {
+      // 初始化
       loadMappedAndUnmappedColumnNames(resultMap, columnPrefix);
       unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     }
@@ -187,6 +227,7 @@ public class ResultSetWrapper {
     if (columnNames == null || columnNames.isEmpty() || prefix == null || prefix.length() == 0) {
       return columnNames;
     }
+    // 拼接前缀 prefix
     final Set<String> prefixed = new HashSet<>();
     for (String columnName : columnNames) {
       prefixed.add(prefix + columnName);

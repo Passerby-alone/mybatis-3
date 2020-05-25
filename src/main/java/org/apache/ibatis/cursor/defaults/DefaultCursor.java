@@ -43,10 +43,21 @@ public class DefaultCursor<T> implements Cursor<T> {
   private final RowBounds rowBounds;
   protected final ObjectWrapperResultHandler<T> objectWrapperResultHandler = new ObjectWrapperResultHandler<>();
 
+  /**
+   * 游标迭代器
+   * */
   private final CursorIterator cursorIterator = new CursorIterator();
+  /**
+   * 是否开始迭代
+   * */
   private boolean iteratorRetrieved;
-
+  /**
+   * 游标状态
+   * */
   private CursorStatus status = CursorStatus.CREATED;
+  /**
+   * 已完成映射的行数
+   * */
   private int indexWithRowBound = -1;
 
   private enum CursorStatus {
@@ -93,12 +104,14 @@ public class DefaultCursor<T> implements Cursor<T> {
 
   @Override
   public Iterator<T> iterator() {
+    // 迭代器只能获取一次
     if (iteratorRetrieved) {
       throw new IllegalStateException("Cannot open more than one iterator on a Cursor");
     }
     if (isClosed()) {
       throw new IllegalStateException("A Cursor is already closed.");
     }
+    // 游标已经被获取
     iteratorRetrieved = true;
     return cursorIterator;
   }
@@ -122,7 +135,9 @@ public class DefaultCursor<T> implements Cursor<T> {
   }
 
   protected T fetchNextUsingRowBound() {
+    // 遍历下一条记录
     T result = fetchNextObjectFromDatabase();
+    // 一直达到offset位置
     while (objectWrapperResultHandler.fetched && indexWithRowBound < rowBounds.getOffset()) {
       result = fetchNextObjectFromDatabase();
     }
@@ -130,29 +145,33 @@ public class DefaultCursor<T> implements Cursor<T> {
   }
 
   protected T fetchNextObjectFromDatabase() {
+    // 如果已经关闭，返回null
     if (isClosed()) {
       return null;
     }
 
     try {
       objectWrapperResultHandler.fetched = false;
+      // 将游标状态设置为open状态
       status = CursorStatus.OPEN;
+      // 遍历下一条记录
       if (!rsw.getResultSet().isClosed()) {
         resultSetHandler.handleRowValues(rsw, resultMap, objectWrapperResultHandler, RowBounds.DEFAULT, null);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
-
+    // 复制给next
     T next = objectWrapperResultHandler.result;
     if (objectWrapperResultHandler.fetched) {
       indexWithRowBound++;
     }
-    // No more object or limit reached
+    // No more object or limit reached 关闭游标
     if (!objectWrapperResultHandler.fetched || getReadItemsCount() == rowBounds.getOffset() + rowBounds.getLimit()) {
       close();
       status = CursorStatus.CONSUMED;
     }
+    // 置空 result 对象
     objectWrapperResultHandler.result = null;
 
     return next;
@@ -168,12 +187,17 @@ public class DefaultCursor<T> implements Cursor<T> {
 
   protected static class ObjectWrapperResultHandler<T> implements ResultHandler<T> {
 
+    /**
+     * 结果对象
+     * */
     protected T result;
     protected boolean fetched;
 
     @Override
     public void handleResult(ResultContext<? extends T> context) {
+      // 设置结果对象
       this.result = context.getResultObject();
+      // 暂停游标向下遍历下一条记录
       context.stop();
       fetched = true;
     }
@@ -182,12 +206,12 @@ public class DefaultCursor<T> implements Cursor<T> {
   protected class CursorIterator implements Iterator<T> {
 
     /**
-     * Holder for the next object to be returned.
+     * 结果对象
      */
     T object;
 
     /**
-     * Index of objects returned using next(), and as such, visible to users.
+     * 索引位置
      */
     int iteratorIndex = -1;
 

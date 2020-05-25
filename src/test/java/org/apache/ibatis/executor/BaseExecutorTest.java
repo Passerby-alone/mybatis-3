@@ -493,6 +493,27 @@ class BaseExecutorTest extends BaseDataTest {
     mallMapper2.selectMall();
   }
 
+  protected Executor createBatchExecutor(Transaction transaction) {
+    return new BatchExecutor(config, transaction);
+  }
+
+  @Test
+  public void testBatchExecutor() throws Exception {
+
+    Executor executor = createBatchExecutor(new JdbcTransaction(ds, null, false));
+    try {
+      MappedStatement selectBlog = ExecutorTestHelper.prepareComplexSelectBlogMappedStatement(config);
+      MappedStatement selectPosts = ExecutorTestHelper.prepareSelectPostsForBlogMappedStatement(config);
+      config.addMappedStatement(selectBlog);
+      config.addMappedStatement(selectPosts);
+      executor.update(selectBlog, 1);
+      executor.flushStatements();
+    } finally {
+      executor.rollback(true);
+      executor.close(false);
+    }
+  }
+
   @Test
   public void testMybatisSecondCache() {
 

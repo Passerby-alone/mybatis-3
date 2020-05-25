@@ -27,6 +27,9 @@ import org.apache.ibatis.session.ResultHandler;
  */
 public class DefaultResultHandler implements ResultHandler<Object> {
 
+  /**
+   * 结果数组
+   * */
   private final List<Object> list;
 
   public DefaultResultHandler() {
@@ -40,6 +43,7 @@ public class DefaultResultHandler implements ResultHandler<Object> {
 
   @Override
   public void handleResult(ResultContext<?> context) {
+    // 将当前的结果添加到list中
     list.add(context.getResultObject());
   }
 

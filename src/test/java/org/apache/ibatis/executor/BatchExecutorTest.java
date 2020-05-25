@@ -22,6 +22,8 @@ class BatchExecutorTest extends BaseExecutorTest {
 
   @Test
   void dummy() {
+
+
   }
 
   @Override
