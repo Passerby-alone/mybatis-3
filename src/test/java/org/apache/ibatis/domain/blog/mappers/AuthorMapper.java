@@ -39,6 +39,11 @@ public interface AuthorMapper {
 
   void selectAllAuthors(ResultHandler handler);
 
+  void selectAuthor(Long id);
+
+  @Select("select * from mall limit 1")
+  Object select(Long id);
+
   Author selectAuthor(int id);
 
   LinkedHashMap<String, Object> selectAuthorLinkedHashMap(int id);

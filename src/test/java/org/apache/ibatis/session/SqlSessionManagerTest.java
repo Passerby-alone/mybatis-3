@@ -30,8 +30,11 @@ import org.apache.ibatis.domain.blog.PostLite;
 import org.apache.ibatis.domain.blog.mappers.AuthorMapper;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import javax.sql.DataSource;
 
 class SqlSessionManagerTest extends BaseDataTest {
 
@@ -42,6 +45,7 @@ class SqlSessionManagerTest extends BaseDataTest {
     createBlogDataSource();
     final String resource = "org/apache/ibatis/builder/MapperConfig.xml";
     final Reader reader = Resources.getResourceAsReader(resource);
+//    SqlSessionFactory sqlSessionFactory = new DefaultSqlSessionFactory(new Configuration());
     manager = SqlSessionManager.newInstance(reader);
   }
 
@@ -64,9 +68,9 @@ class SqlSessionManagerTest extends BaseDataTest {
       manager.startManagedSession();
       AuthorMapper mapper = manager.getMapper(AuthorMapper.class);
       Author expected = new Author(500, "cbegin", "******", "cbegin@somewhere.com", "Something...", null);
+      Author actual = mapper.selectAuthor(500);
       mapper.insertAuthor(expected);
       manager.commit();
-      Author actual = mapper.selectAuthor(500);
       assertNotNull(actual);
     } finally {
       manager.close();

@@ -63,20 +63,20 @@
         <property name="" value=""/>
       </transactionManager>
       <dataSource type="UNPOOLED">
-        <property name="driver" value="${driver}"/>
-        <property name="url" value="${url}"/>
-        <property name="username" value="${username}"/>
-        <property name="password" value="${password}"/>
+        <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/yiyong-zhanggui"/>
+        <property name="username" value="root"/>
+        <property name="password" value="888888"/>
       </dataSource>
     </environment>
   </environments>
 
   <mappers>
     <mapper resource="org/apache/ibatis/builder/AuthorMapper.xml"/>
-    <mapper resource="org/apache/ibatis/builder/BlogMapper.xml"/>
-    <mapper resource="org/apache/ibatis/builder/CachedAuthorMapper.xml"/>
-    <mapper resource="org/apache/ibatis/builder/PostMapper.xml"/>
-    <mapper resource="org/apache/ibatis/builder/NestedBlogMapper.xml"/>
+    <!--<mapper resource="org/apache/ibatis/builder/BlogMapper.xml"/>-->
+    <!--<mapper resource="org/apache/ibatis/builder/CachedAuthorMapper.xml"/>-->
+    <!--<mapper resource="org/apache/ibatis/builder/PostMapper.xml"/>-->
+    <!--<mapper resource="org/apache/ibatis/builder/NestedBlogMapper.xml"/>-->
   </mappers>
 
 </configuration>

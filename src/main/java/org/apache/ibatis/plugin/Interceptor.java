@@ -22,8 +22,14 @@ import java.util.Properties;
  */
 public interface Interceptor {
 
+  /**
+   * 拦截方法
+   * */
   Object intercept(Invocation invocation) throws Throwable;
 
+  /**
+   * 应用插件
+   * */
   default Object plugin(Object target) {
     return Plugin.wrap(target, this);
   }

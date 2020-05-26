@@ -30,8 +30,17 @@ import org.apache.ibatis.reflection.ExceptionUtil;
  */
 public class Plugin implements InvocationHandler {
 
+  /**
+   * 目标对象
+   * */
   private final Object target;
+  /**
+   * 拦截器
+   * */
   private final Interceptor interceptor;
+  /**
+   * 拦截方法的映射
+   * */
   private final Map<Class<?>, Set<Method>> signatureMap;
 
   private Plugin(Object target, Interceptor interceptor, Map<Class<?>, Set<Method>> signatureMap) {
@@ -41,9 +50,13 @@ public class Plugin implements InvocationHandler {
   }
 
   public static Object wrap(Object target, Interceptor interceptor) {
+    // 获得拦截的方法映射
     Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
+    // 获得目标类的类型
     Class<?> type = target.getClass();
+    // 获得目标类的接口集合
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
+    // 若有接口，则返回JDK动态代理
     if (interfaces.length > 0) {
       return Proxy.newProxyInstance(
           type.getClassLoader(),
@@ -56,10 +69,13 @@ public class Plugin implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      // 获得目标方法是否被拦截
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
       if (methods != null && methods.contains(method)) {
+        // 如果是，则拦截处理方法
         return interceptor.intercept(new Invocation(target, method, args));
       }
+      // 如果不是，则调用原有方法
       return method.invoke(target, args);
     } catch (Exception e) {
       throw ExceptionUtil.unwrapThrowable(e);
@@ -87,15 +103,19 @@ public class Plugin implements InvocationHandler {
   }
 
   private static Class<?>[] getAllInterfaces(Class<?> type, Map<Class<?>, Set<Method>> signatureMap) {
+    // 接口的集合
     Set<Class<?>> interfaces = new HashSet<>();
+    // 循环递归 type 类
     while (type != null) {
       for (Class<?> c : type.getInterfaces()) {
         if (signatureMap.containsKey(c)) {
           interfaces.add(c);
         }
       }
+      // 获得父类
       type = type.getSuperclass();
     }
+    // 创建接口数组
     return interfaces.toArray(new Class<?>[interfaces.size()]);
   }
 

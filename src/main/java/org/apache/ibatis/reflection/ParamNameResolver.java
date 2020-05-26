@@ -154,15 +154,19 @@ public class ParamNameResolver {
    */
   public static Object wrapToMapIfCollection(Object object, String actualParamName) {
     if (object instanceof Collection) {
+      // 如果是集合，则添加到 collection 中
       ParamMap<Object> map = new ParamMap<>();
       map.put("collection", object);
+      // 如果是 List ，则添加到 list 中
       if (object instanceof List) {
         map.put("list", object);
       }
       Optional.ofNullable(actualParamName).ifPresent(name -> map.put(name, object));
       return map;
+      // 如果是array
     } else if (object != null && object.getClass().isArray()) {
       ParamMap<Object> map = new ParamMap<>();
+      // 则添加到array中
       map.put("array", object);
       Optional.ofNullable(actualParamName).ifPresent(name -> map.put(name, object));
       return map;

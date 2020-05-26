@@ -35,22 +35,36 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 
 /**
- * @author Clinton Begin
+ * 结果加载器
  */
 public class ResultLoader {
 
   protected final Configuration configuration;
   protected final Executor executor;
   protected final MappedStatement mappedStatement;
+  /**
+   * 查询的参数对象
+   * */
   protected final Object parameterObject;
+  /**
+   * 结果对象
+   * */
   protected final Class<?> targetType;
   protected final ObjectFactory objectFactory;
   protected final CacheKey cacheKey;
   protected final BoundSql boundSql;
   protected final ResultExtractor resultExtractor;
+  /**
+   * 创建 ResultLoader 所在的线程ID
+   * */
   protected final long creatorThreadId;
-
+  /**
+   * 是否已经加载
+   * */
   protected boolean loaded;
+  /**
+   * 查询的结果对象
+   * */
   protected Object resultObject;
 
   public ResultLoader(Configuration config, Executor executor, MappedStatement mappedStatement, Object parameterObject, Class<?> targetType, CacheKey cacheKey, BoundSql boundSql) {
@@ -62,22 +76,28 @@ public class ResultLoader {
     this.objectFactory = configuration.getObjectFactory();
     this.cacheKey = cacheKey;
     this.boundSql = boundSql;
+    // 初始化 resultExtractor
     this.resultExtractor = new ResultExtractor(configuration, objectFactory);
+    // 初始化 creatorThreadId
     this.creatorThreadId = Thread.currentThread().getId();
   }
 
   public Object loadResult() throws SQLException {
+    // 查询结果
     List<Object> list = selectList();
+    // 提取结果
     resultObject = resultExtractor.extractObjectFromList(list, targetType);
     return resultObject;
   }
 
   private <E> List<E> selectList() throws SQLException {
     Executor localExecutor = executor;
+    // 如果当前线程不是创建线程， 因为Executor不是线程安全的
     if (Thread.currentThread().getId() != this.creatorThreadId || localExecutor.isClosed()) {
       localExecutor = newExecutor();
     }
     try {
+      // 用Executor执行查询
       return localExecutor.query(mappedStatement, parameterObject, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER, cacheKey, boundSql);
     } finally {
       if (localExecutor != executor) {

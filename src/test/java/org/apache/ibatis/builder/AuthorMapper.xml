@@ -93,8 +93,7 @@
     </select>
 
     <select id="selectAuthor" parameterMap="selectAuthor" resultMap="selectAuthor">
-        select id, username, password, email, bio, favourite_section
-        from author where id = ?
+        select * from mall
     </select>
 
     <select id="selectImmutableAuthor" parameterMap="selectAuthor"

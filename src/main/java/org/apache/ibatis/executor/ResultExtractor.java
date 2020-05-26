@@ -23,7 +23,7 @@ import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * @author Andrew Gustafson
+ * 结果提取器
  */
 public class ResultExtractor {
   private final Configuration configuration;
@@ -34,17 +34,27 @@ public class ResultExtractor {
     this.objectFactory = objectFactory;
   }
 
+  /**
+   * 从 list 中，提取结果
+   * */
   public Object extractObjectFromList(List<Object> list, Class<?> targetType) {
     Object value = null;
+    // 如果targetType 直接是list的父类，直接返回
     if (targetType != null && targetType.isAssignableFrom(list.getClass())) {
       value = list;
+      // targetType 是集合，则添加到集合中
     } else if (targetType != null && objectFactory.isCollection(targetType)) {
+      // 创建Collection对象
       value = objectFactory.create(targetType);
+      // 将结果添加到其中
       MetaObject metaObject = configuration.newMetaObject(value);
       metaObject.addAll(list);
+      // targetType 是数组
     } else if (targetType != null && targetType.isArray()) {
+      // 创建Array数组
       Class<?> arrayComponentType = targetType.getComponentType();
       Object array = Array.newInstance(arrayComponentType, list.size());
+      // 赋值到 array 中
       if (arrayComponentType.isPrimitive()) {
         for (int i = 0; i < list.size(); i++) {
           Array.set(array, i, list.get(i));
@@ -54,6 +64,7 @@ public class ResultExtractor {
         value = list.toArray((Object[])array);
       }
     } else {
+      // 如果是普通对象，则取第一个值
       if (list != null && list.size() > 1) {
         throw new ExecutorException("Statement returned more than one row, where no more than one was expected.");
       } else if (list != null && list.size() == 1) {

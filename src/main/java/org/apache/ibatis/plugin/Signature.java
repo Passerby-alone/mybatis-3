@@ -21,8 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The annotation that indicate the method signature.
- *
+ * 方法签名
  * @see Intercepts
  * @author Clinton Begin
  */
@@ -31,22 +30,17 @@ import java.lang.annotation.Target;
 @Target({})
 public @interface Signature {
   /**
-   * Returns the java type.
-   *
-   * @return the java type
+   * return class类型
    */
   Class<?> type();
 
   /**
-   * Returns the method name.
-   *
-   * @return the method name
+   * 方法名
    */
   String method();
 
   /**
-   * Returns java types for method argument.
-   * @return java types for method argument
+   * 参数类型
    */
   Class<?>[] args();
 }

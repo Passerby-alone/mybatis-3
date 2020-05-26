@@ -17,12 +17,37 @@ package org.apache.ibatis.plugin;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.Reader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.BaseDataTest;
+import org.apache.ibatis.cache.CacheKey;
+import org.apache.ibatis.domain.blog.Author;
+import org.apache.ibatis.domain.blog.mappers.AuthorMapper;
+import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.mapping.BoundSql;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.ResultHandler;
+import org.apache.ibatis.session.RowBounds;
+import org.apache.ibatis.session.SqlSessionManager;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class PluginTest {
+class PluginTest extends BaseDataTest {
+
+  private static SqlSessionManager manager;
+
+  @BeforeAll
+  static void setup() throws Exception {
+    createBlogDataSource();
+    final String resource = "org/apache/ibatis/builder/MapperConfig.xml";
+    final Reader reader = Resources.getResourceAsReader(resource);
+    manager = SqlSessionManager.newInstance(reader);
+  }
 
   @Test
   void mapPluginShouldInterceptGet() {
@@ -38,14 +63,41 @@ class PluginTest {
     assertNotEquals("Always", map.toString());
   }
 
-  @Intercepts({
-      @Signature(type = Map.class, method = "get", args = {Object.class})})
+  @Test
+  public void testPlugins() {
+
+    Configuration configuration = manager.getConfiguration();
+//    configuration.addInterceptor(new AlwaysMapPlugin());
+//    configuration.addInterceptor(new SecondPlugin());
+
+    AuthorMapper mapper = manager.getMapper(AuthorMapper.class);
+    mapper.select(500L);
+
+    mapper.select(50L);
+  }
+
+
+  @Intercepts(value = {
+      @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})})
   public static class AlwaysMapPlugin implements Interceptor {
     @Override
     public Object intercept(Invocation invocation) {
+      System.out.println("123132");
       return "Always";
     }
+  }
 
+  @Intercepts(value = {
+    @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})
+  })
+  public static class SecondPlugin implements Interceptor {
+
+
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+      System.out.println("第二个插件起作用了");
+      return invocation.proceed();
+    }
   }
 
 }
